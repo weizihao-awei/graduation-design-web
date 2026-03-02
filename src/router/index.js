@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
-// 路由配置 - 只保留存在的视图组件
+// 路由配置
 const routes = [
   {
     path: '/',
@@ -20,6 +20,70 @@ const routes = [
     name: 'Register',
     component: () => import('@/views/Register.vue'),
     meta: { title: '注册' }
+  },
+  {
+    path: '/articles',
+    name: 'Articles',
+    component: () => import('@/views/Articles.vue'),
+    meta: { title: '文章列表' }
+  },
+  {
+    path: '/article/:id',
+    name: 'ArticleDetail',
+    component: () => import('@/views/ArticleDetail.vue'),
+    meta: { title: '文章详情' }
+  },
+  {
+    path: '/tags',
+    name: 'Tags',
+    component: () => import('@/views/Tags.vue'),
+    meta: { title: '标签' }
+  },
+  {
+    path: '/tag/:id',
+    name: 'TagArticles',
+    redirect: to => {
+      return {
+        path: '/articles',
+        query: { tagId: to.params.id }
+      }
+    }
+  },
+  {
+    path: '/write',
+    name: 'Write',
+    component: () => import('@/views/Write.vue'),
+    meta: { title: '写文章', requiresAuth: true }
+  },
+  {
+    path: '/write/:id',
+    name: 'Edit',
+    component: () => import('@/views/Write.vue'),
+    meta: { title: '编辑文章', requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/views/Profile.vue'),
+    meta: { title: '个人中心', requiresAuth: true }
+  },
+  {
+    path: '/my-articles',
+    redirect: to => {
+      return {
+        path: '/profile',
+        query: { tab: 'articles' }
+      }
+    }
+  },
+  {
+    path: '/my-collects',
+    redirect: to => {
+      return {
+        path: '/profile',
+        query: { tab: 'collects' }
+      }
+    }
   },
   {
     path: '/:pathMatch(.*)*',
