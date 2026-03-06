@@ -22,16 +22,28 @@
 
 <style scoped>
 .blog-footer {
-  background: #303133;
-  color: #c0c4cc;
-  padding: 30px 0;
-  margin-top: 50px;
+  background: linear-gradient(135deg, var(--text-primary) 0%, #1a1a1a 100%);
+  color: var(--text-placeholder);
+  padding: var(--spacing-xl) 0;
+  margin-top: var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.blog-footer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 0 var(--spacing-lg);
 }
 
 .footer-content {
@@ -39,34 +51,66 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 20px;
+  gap: var(--spacing-lg);
+}
+
+.footer-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
 }
 
 .footer-info p {
-  margin: 5px 0;
+  margin: 0;
   font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: var(--transition-fast);
 }
 
 .footer-links {
   display: flex;
-  gap: 20px;
+  gap: var(--spacing-lg);
 }
 
 .footer-links a {
-  color: #c0c4cc;
+  color: var(--text-secondary);
   text-decoration: none;
   font-size: 14px;
-  transition: color 0.3s;
+  font-weight: 500;
+  transition: var(--transition-fast);
+  position: relative;
+  padding-bottom: 2px;
+}
+
+.footer-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--primary-color);
+  transition: var(--transition-fast);
 }
 
 .footer-links a:hover {
-  color: #409EFF;
+  color: var(--primary-color);
+}
+
+.footer-links a:hover::after {
+  width: 100%;
 }
 
 @media (max-width: 768px) {
   .footer-content {
     flex-direction: column;
     text-align: center;
+    gap: var(--spacing-md);
+  }
+  
+  .footer-links {
+    gap: var(--spacing-md);
   }
 }
 </style>

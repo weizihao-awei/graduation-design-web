@@ -145,78 +145,133 @@ const handleDelete = async () => {
 
 <style scoped>
 .article-card {
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  background: var(--bg-white);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
-  transition: all 0.3s;
-  margin-bottom: 20px;
+  transition: var(--transition-base);
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+}
+
+.article-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
+  opacity: 0;
+  transition: var(--transition-fast);
 }
 
 .article-card:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-hover);
+}
+
+.article-card:hover::before {
+  opacity: 1;
 }
 
 .card-content {
   display: flex;
-  padding: 20px;
-  gap: 20px;
+  padding: var(--spacing-lg);
+  gap: var(--spacing-lg);
 }
 
 .cover-image {
-  width: 200px;
-  height: 150px;
+  width: 220px;
+  height: 160px;
   flex-shrink: 0;
-  border-radius: 4px;
+  border-radius: var(--border-radius-lg);
   overflow: hidden;
+  position: relative;
+}
+
+.cover-image::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(0deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%);
+  opacity: 0;
+  transition: var(--transition-fast);
+}
+
+.article-card:hover .cover-image::after {
+  opacity: 1;
 }
 
 .cover-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: var(--transition-base);
+}
+
+.article-card:hover .cover-image img {
+  transform: scale(1.05);
 }
 
 .article-info {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--spacing-md);
 }
 
 .article-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.25rem;
   font-weight: 600;
+  line-height: 1.4;
 }
 
 .article-title a {
-  color: #303133;
+  color: var(--text-primary);
   text-decoration: none;
-  transition: color 0.3s;
+  transition: var(--transition-fast);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .article-title a:hover {
-  color: #409EFF;
+  color: var(--primary-color);
 }
 
 .article-summary {
-  color: #606266;
+  color: var(--text-regular);
   font-size: 14px;
   line-height: 1.6;
   margin: 0;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .article-tags {
   display: flex;
-  gap: 8px;
+  gap: var(--spacing-sm);
   flex-wrap: wrap;
 }
 
 .article-tags .el-tag {
   cursor: pointer;
+  font-weight: 500;
+  transition: var(--transition-fast);
+}
+
+.article-tags .el-tag:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-light);
 }
 
 .article-meta {
@@ -224,45 +279,68 @@ const handleDelete = async () => {
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 15px;
-  font-size: 12px;
-  color: #909399;
+  gap: var(--spacing-md);
+  font-size: 13px;
+  color: var(--text-secondary);
+  padding-top: var(--spacing-sm);
+  border-top: 1px solid var(--border-extra-light);
 }
 
 .author-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .author-name {
-  color: #606266;
+  color: var(--text-regular);
+  font-weight: 500;
+  transition: var(--transition-fast);
+}
+
+.author-info:hover .author-name {
+  color: var(--primary-color);
 }
 
 .meta-info {
   display: flex;
   align-items: center;
-  gap: 15px;
+  gap: var(--spacing-md);
 }
 
 .meta-info span {
   display: flex;
   align-items: center;
   gap: 4px;
+  font-weight: 500;
 }
 
 .card-actions {
-  padding: 15px 20px;
-  border-top: 1px solid #eee;
-  background: #fafafa;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--border-extra-light);
+  background: var(--bg-page);
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
+.card-actions .el-button {
+  padding: 8px 16px;
+  font-weight: 500;
+  border-radius: var(--border-radius-base);
+  transition: var(--transition-base);
+}
+
+.card-actions .el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-light);
+}
+
+/* 响应式设计 */
 @media (max-width: 768px) {
   .card-content {
     flex-direction: column;
+    gap: var(--spacing-md);
   }
   
   .cover-image {
@@ -273,6 +351,29 @@ const handleDelete = async () => {
   .article-meta {
     flex-direction: column;
     align-items: flex-start;
+    gap: var(--spacing-sm);
+  }
+  
+  .meta-info {
+    gap: var(--spacing-sm);
+  }
+  
+  .card-actions {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-content {
+    padding: var(--spacing-md);
+  }
+  
+  .article-title {
+    font-size: 1.1rem;
+  }
+  
+  .article-summary {
+    font-size: 13px;
   }
 }
 </style>
