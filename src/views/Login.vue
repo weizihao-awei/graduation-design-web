@@ -53,6 +53,9 @@
             还没有账号？
             <router-link to="/register">立即注册</router-link>
           </p>
+          <p class="forgot-password">
+            <router-link to="/reset-password">忘记密码？</router-link>
+          </p>
         </div>
       </div>
     </div>
@@ -115,8 +118,8 @@ const handleLogin = async () => {
     const redirect = route.query.redirect || '/'
     router.push(redirect)
   } catch (error) {
-    if (error.response?.data?.message) {
-      ElMessage.error(error.response.data.message)
+    if (error.message) {
+      ElMessage.error(error.message)
     } else {
       ElMessage.error('登录失败，请检查网络连接')
     }
@@ -274,6 +277,10 @@ const handleLogin = async () => {
   font-size: 14px;
   color: var(--text-regular);
   margin-top: var(--spacing-lg);
+}
+
+.login-footer p {
+  margin: 8px 0;
 }
 
 .login-footer a {

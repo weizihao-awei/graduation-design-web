@@ -1,41 +1,23 @@
 <template>
-  <div class="register-page">
-    <div class="register-container">
-      <div class="register-box">
-        <div class="register-header">
-          <h2>用户注册</h2>
-          <p>加入我们的技术社区</p>
+  <div class="reset-password-page">
+    <div class="reset-password-container">
+      <div class="reset-password-box">
+        <div class="reset-password-header">
+          <h2>重置密码</h2>
+          <p>通过邮箱验证码重置您的密码</p>
         </div>
         
         <el-form
-          ref="registerFormRef"
-          :model="registerForm"
-          :rules="registerRules"
+          ref="resetFormRef"
+          :model="resetForm"
+          :rules="resetRules"
           label-width="0"
-          class="register-form"
+          class="reset-password-form"
         >
-          <el-form-item prop="username">
-            <el-input
-              v-model="registerForm.username"
-              placeholder="请输入用户名（3-20位字母数字下划线）"
-              size="large"
-              :prefix-icon="User"
-            />
-          </el-form-item>
-          
-          <el-form-item prop="nickname">
-            <el-input
-              v-model="registerForm.nickname"
-              placeholder="请输入昵称"
-              size="large"
-              :prefix-icon="UserFilled"
-            />
-          </el-form-item>
-          
           <el-form-item prop="email">
             <div class="email-input-container">
               <el-input
-                v-model="registerForm.email"
+                v-model="resetForm.email"
                 placeholder="请输入邮箱"
                 size="large"
                 :prefix-icon="Message"
@@ -55,18 +37,18 @@
           
           <el-form-item prop="verificationCode">
             <el-input
-              v-model="registerForm.verificationCode"
+              v-model="resetForm.verificationCode"
               placeholder="请输入邮箱验证码"
               size="large"
               :prefix-icon="Key"
             />
           </el-form-item>
           
-          <el-form-item prop="password">
+          <el-form-item prop="newPassword">
             <el-input
-              v-model="registerForm.password"
+              v-model="resetForm.newPassword"
               type="password"
-              placeholder="请输入密码（6-20位）"
+              placeholder="请输入新密码（6-20位）"
               size="large"
               :prefix-icon="Lock"
               show-password
@@ -75,13 +57,13 @@
           
           <el-form-item prop="confirmPassword">
             <el-input
-              v-model="registerForm.confirmPassword"
+              v-model="resetForm.confirmPassword"
               type="password"
-              placeholder="请确认密码"
+              placeholder="请确认新密码"
               size="large"
               :prefix-icon="Lock"
               show-password
-              @keyup.enter="handleRegister"
+              @keyup.enter="handleResetPassword"
             />
           </el-form-item>
           
@@ -89,19 +71,19 @@
             <el-button
               type="primary"
               size="large"
-              class="register-button"
+              class="reset-password-button"
               :loading="loading"
-              @click="handleRegister"
+              @click="handleResetPassword"
             >
-              {{ loading ? '注册中...' : '注册' }}
+              {{ loading ? '重置中...' : '重置密码' }}
             </el-button>
           </el-form-item>
         </el-form>
         
-        <div class="register-footer">
+        <div class="reset-password-footer">
           <p>
-            已有账号？
-            <router-link to="/login">立即登录</router-link>
+            记起密码了？
+            <router-link to="/login">返回登录</router-link>
           </p>
         </div>
       </div>
@@ -112,41 +94,29 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { register, sendVerificationCode } from '@/api/auth'
-import { validateEmail, validateUsername, validatePassword } from '@/utils'
+import { sendVerificationCode, resetPassword } from '@/api/auth'
+import { validateEmail, validatePassword } from '@/utils'
 import { ElMessage } from 'element-plus'
-import { User, UserFilled, Message, Lock, Key } from '@element-plus/icons-vue'
+import { Message, Lock, Key } from '@element-plus/icons-vue'
 
 const router = useRouter()
 
-const registerFormRef = ref()
+const resetFormRef = ref()
 const loading = ref(false)
 const sendingCode = ref(false)
 const countdown = ref(0)
 
-const registerForm = reactive({
-  username: '',
-  nickname: '',
+const resetForm = reactive({
   email: '',
-  password: '',
-  confirmPassword: '',
-  verificationCode: ''
+  verificationCode: '',
+  newPassword: '',
+  confirmPassword: ''
 })
 
 // 计算属性：是否可以发送验证码
 const canSendCode = computed(() => {
-  return validateEmail(registerForm.email)
+  return validateEmail(resetForm.email)
 })
-
-const validateUsernameRule = (rule, value, callback) => {
-  if (!value) {
-    callback(new Error('请输入用户名'))
-  } else if (!validateUsername(value)) {
-    callback(new Error('用户名只能包含字母、数字和下划线，长度3-20位'))
-  } else {
-    callback()
-  }
-}
 
 const validateEmailRule = (rule, value, callback) => {
   if (!value) {
@@ -170,7 +140,7 @@ const validateVerificationCode = (rule, value, callback) => {
 
 const validatePasswordRule = (rule, value, callback) => {
   if (!value) {
-    callback(new Error('请输入密码'))
+    callback(new Error('请输入新密码'))
   } else if (!validatePassword(value)) {
     callback(new Error('密码长度为6-20位'))
   } else {
@@ -180,29 +150,22 @@ const validatePasswordRule = (rule, value, callback) => {
 
 const validateConfirmPassword = (rule, value, callback) => {
   if (!value) {
-    callback(new Error('请确认密码'))
-  } else if (value !== registerForm.password) {
+    callback(new Error('请确认新密码'))
+  } else if (value !== resetForm.newPassword) {
     callback(new Error('两次输入的密码不一致'))
   } else {
     callback()
   }
 }
 
-const registerRules = {
-  username: [
-    { validator: validateUsernameRule, trigger: 'blur' }
-  ],
-  nickname: [
-    { required: true, message: '请输入昵称', trigger: 'blur' },
-    { max: 20, message: '昵称长度不能超过20个字符', trigger: 'blur' }
-  ],
+const resetRules = {
   email: [
     { validator: validateEmailRule, trigger: 'blur' }
   ],
   verificationCode: [
     { validator: validateVerificationCode, trigger: 'blur' }
   ],
-  password: [
+  newPassword: [
     { validator: validatePasswordRule, trigger: 'blur' }
   ],
   confirmPassword: [
@@ -212,7 +175,7 @@ const registerRules = {
 
 // 发送验证码
 const handleSendCode = async () => {
-  if (!validateEmail(registerForm.email)) {
+  if (!validateEmail(resetForm.email)) {
     ElMessage.error('请输入正确的邮箱格式')
     return
   }
@@ -220,8 +183,8 @@ const handleSendCode = async () => {
   try {
     sendingCode.value = true
     await sendVerificationCode({
-      email: registerForm.email,
-      type: 'register'
+      email: resetForm.email,
+      type: 'reset'
     })
     
     ElMessage.success('验证码已发送，请注意查收')
@@ -245,23 +208,23 @@ const handleSendCode = async () => {
   }
 }
 
-const handleRegister = async () => {
-  if (!registerFormRef.value) return
+const handleResetPassword = async () => {
+  if (!resetFormRef.value) return
   
   try {
-    await registerFormRef.value.validate()
+    await resetFormRef.value.validate()
     loading.value = true
     
     // 直接发送整个表单数据，包括确认密码
-    await register(registerForm)
+    await resetPassword(resetForm)
     
-    ElMessage.success('注册成功，请登录')
+    ElMessage.success('密码重置成功，请登录')
     router.push('/login')
   } catch (error) {
     if (error.message) {
       ElMessage.error(error.message)
     } else {
-      ElMessage.error('注册失败，请检查网络连接')
+      ElMessage.error('重置密码失败，请检查网络连接')
     }
   } finally {
     loading.value = false
@@ -270,7 +233,7 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-.register-page {
+.reset-password-page {
   min-height: 100vh;
   background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
   display: flex;
@@ -281,7 +244,7 @@ const handleRegister = async () => {
   overflow: hidden;
 }
 
-.register-page::before {
+.reset-password-page::before {
   content: '';
   position: absolute;
   top: 0;
@@ -292,14 +255,14 @@ const handleRegister = async () => {
   background-size: cover;
 }
 
-.register-container {
+.reset-password-container {
   width: 100%;
   max-width: 450px;
   position: relative;
   z-index: 2;
 }
 
-.register-box {
+.reset-password-box {
   background: var(--bg-white);
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-xl) var(--spacing-lg);
@@ -309,7 +272,7 @@ const handleRegister = async () => {
   overflow: hidden;
 }
 
-.register-box::before {
+.reset-password-box::before {
   content: '';
   position: absolute;
   top: 0;
@@ -319,13 +282,13 @@ const handleRegister = async () => {
   background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
 }
 
-.register-header {
+.reset-password-header {
   text-align: center;
   margin-bottom: var(--spacing-xl);
   position: relative;
 }
 
-.register-header h2 {
+.reset-password-header h2 {
   margin: 0 0 var(--spacing-md) 0;
   color: var(--text-primary);
   font-size: 1.8rem;
@@ -333,7 +296,7 @@ const handleRegister = async () => {
   position: relative;
 }
 
-.register-header h2::after {
+.reset-password-header h2::after {
   content: '';
   position: absolute;
   bottom: -8px;
@@ -345,22 +308,22 @@ const handleRegister = async () => {
   border-radius: var(--border-radius-base);
 }
 
-.register-header p {
+.reset-password-header p {
   margin: 0;
   color: var(--text-regular);
   font-size: 1rem;
   font-weight: 500;
 }
 
-.register-form {
+.reset-password-form {
   margin-bottom: var(--spacing-lg);
 }
 
-.register-form .el-form-item {
+.reset-password-form .el-form-item {
   margin-bottom: var(--spacing-lg);
 }
 
-.register-form .el-input__wrapper {
+.reset-password-form .el-input__wrapper {
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-base);
   border: 1px solid var(--border-lighter);
@@ -368,12 +331,12 @@ const handleRegister = async () => {
   padding: 4px 0;
 }
 
-.register-form .el-input__wrapper:hover {
+.reset-password-form .el-input__wrapper:hover {
   border-color: var(--primary-light);
   box-shadow: var(--shadow-light);
 }
 
-.register-form .el-input__wrapper.is-focus {
+.reset-password-form .el-input__wrapper.is-focus {
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.2);
 }
@@ -394,7 +357,7 @@ const handleRegister = async () => {
   font-size: 14px;
 }
 
-.register-button {
+.reset-password-button {
   width: 100%;
   height: 50px;
   font-size: 16px;
@@ -408,7 +371,7 @@ const handleRegister = async () => {
   overflow: hidden;
 }
 
-.register-button::before {
+.reset-password-button::before {
   content: '';
   position: absolute;
   top: 0;
@@ -419,23 +382,23 @@ const handleRegister = async () => {
   transition: left 0.6s;
 }
 
-.register-button:hover {
+.reset-password-button:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
 }
 
-.register-button:hover::before {
+.reset-password-button:hover::before {
   left: 100%;
 }
 
-.register-footer {
+.reset-password-footer {
   text-align: center;
   font-size: 14px;
   color: var(--text-regular);
   margin-top: var(--spacing-lg);
 }
 
-.register-footer a {
+.reset-password-footer a {
   color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
@@ -444,7 +407,7 @@ const handleRegister = async () => {
   padding-bottom: 2px;
 }
 
-.register-footer a::after {
+.reset-password-footer a::after {
   content: '';
   position: absolute;
   bottom: 0;
@@ -455,24 +418,24 @@ const handleRegister = async () => {
   transition: var(--transition-fast);
 }
 
-.register-footer a:hover {
+.reset-password-footer a:hover {
   color: var(--primary-dark);
 }
 
-.register-footer a:hover::after {
+.reset-password-footer a:hover::after {
   width: 100%;
 }
 
 @media (max-width: 480px) {
-  .register-container {
+  .reset-password-container {
     max-width: 350px;
   }
   
-  .register-box {
+  .reset-password-box {
     padding: var(--spacing-lg) var(--spacing-md);
   }
   
-  .register-header h2 {
+  .reset-password-header h2 {
     font-size: 1.5rem;
   }
 }
