@@ -6,7 +6,7 @@ const routes = [
   {
     path: '/',
     name: 'Home',
-    component: () => import('@/views/Home.vue'),
+    redirect: '/articles?sort=recommend',
     meta: { title: '首页' }
   },
   {

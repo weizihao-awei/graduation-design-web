@@ -37,8 +37,9 @@
                 <div class="filter-item">
                   <label>排序：</label>
                   <el-select v-model="filters.sort" placeholder="默认排序" @change="handleFilterChange">
-                    <el-option label="最新发布" value="newest" />
-                    <el-option label="最多浏览" value="hot" />
+                    <el-option label="推荐" value="recommend" />
+                    <el-option label="热门" value="hot" />
+                    <el-option label="最新" value="newest" />
                     <el-option label="最多点赞" value="liked" />
                   </el-select>
                 </div>
@@ -136,6 +137,7 @@ import {
   getArticleList, 
   getArticlesByTag,
   getHotArticles,
+  getRecommendArticles,
   deleteArticle 
 } from '@/api/article'
 import { getTagList, getHotTags } from '@/api/tag'
@@ -161,7 +163,7 @@ const pageSize = ref(10)
 const filters = reactive({
   categoryId: null,
   tagId: null,
-  sort: 'newest',
+  sort: 'recommend',
   keyword: ''
 })
 
@@ -200,7 +202,16 @@ const fetchArticles = async (reset = false) => {
       
       // 根据排序方式调用不同接口
       let res
-      if (filters.sort === 'hot' && !filters.categoryId && !filters.keyword) {
+      if (filters.sort === 'recommend' && !filters.categoryId && !filters.keyword) {
+        // 获取推荐文章
+        res = await getRecommendArticles(pageSize.value)
+        if (reset) {
+          articles.value = res.data || []
+        } else {
+          articles.value = [...articles.value, ...(res.data || [])]
+        }
+        hasMore.value = false // 推荐文章不分页
+      } else if (filters.sort === 'hot' && !filters.categoryId && !filters.keyword) {
         // 获取热门文章
         res = await getHotArticles(pageSize.value)
         if (reset) {

@@ -12,9 +12,14 @@
         
         <!-- 导航菜单 -->
         <nav class="nav-menu">
-          <router-link to="/" class="nav-item" active-class="active">首页</router-link>
+          <router-link to="/articles?sort=recommend" class="nav-item" active-class="active">推荐</router-link>
+          <div class="nav-divider"></div>
+          <router-link to="/articles?sort=hot" class="nav-item" active-class="active">热门</router-link>
+          <div class="nav-divider"></div>
+          <router-link to="/articles?sort=newest" class="nav-item" active-class="active">最新</router-link>
           <div class="nav-divider"></div>
           <router-link to="/articles" class="nav-item" active-class="active">全部文章</router-link>
+          <div class="nav-divider"></div>
           <router-link to="/tags" class="nav-item nav-tag" style="color: #000 !important;">标签</router-link>
         </nav>
         
