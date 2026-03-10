@@ -13,8 +13,9 @@
         <!-- 导航菜单 -->
         <nav class="nav-menu">
           <router-link to="/" class="nav-item" active-class="active">首页</router-link>
-          <router-link to="/articles" class="nav-item" active-class="active">文章</router-link>
-          <router-link to="/tags" class="nav-item" active-class="active">标签</router-link>
+          <div class="nav-divider"></div>
+          <router-link to="/articles" class="nav-item" active-class="active">全部文章</router-link>
+          <router-link to="/tags" class="nav-item nav-tag" style="color: #000 !important;">标签</router-link>
         </nav>
         
         <!-- 搜索框 -->
@@ -133,10 +134,11 @@ const handleUserCommand = async (command) => {
   z-index: 1000;
   backdrop-filter: blur(10px);
   background: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: 0 var(--spacing-lg);
 }
@@ -181,8 +183,21 @@ const handleUserCommand = async (command) => {
 
 .nav-menu {
   display: flex;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   flex: 1;
+  align-items: center;
+}
+
+.nav-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-lighter);
+}
+
+.nav-group {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
 }
 
 .nav-item {
@@ -192,6 +207,9 @@ const handleUserCommand = async (command) => {
   color: var(--text-regular);
   font-weight: 500;
   transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: 6px;
   position: relative;
   overflow: hidden;
 }
@@ -201,26 +219,80 @@ const handleUserCommand = async (command) => {
   position: absolute;
   bottom: 0;
   left: 0;
-  width: 0;
+  right: 0;
   height: 2px;
   background: var(--primary-color);
-  transition: var(--transition-fast);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 .nav-item:hover,
 .nav-item.active {
-  background: var(--bg-page);
   color: var(--primary-color);
   transform: translateY(-2px);
 }
 
 .nav-item:hover::before,
 .nav-item.active::before {
-  width: 100%;
+  transform: scaleX(1);
+}
+
+.nav-item .el-icon {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.nav-item:hover .el-icon {
+  transform: scale(1.1);
+}
+
+.nav-item.nav-tag {
+  font-weight: 400;
+  color: #000 !important;
+}
+
+.nav-item.nav-tag:hover {
+  color: #000 !important;
+  transform: translateY(-1px);
+}
+
+.nav-item.nav-tag.active {
+  color: #000 !important;
+  transform: translateY(-1px);
+}
+
+.nav-menu .nav-item.nav-tag.active {
+  color: #000 !important;
+}
+
+:deep(.nav-item.nav-tag) {
+  color: #000 !important;
+}
+
+:deep(.nav-item.nav-tag:hover) {
+  color: #000 !important;
+}
+
+:deep(.nav-item.nav-tag.active) {
+  color: #000 !important;
+}
+
+:deep(.nav-menu .nav-item.nav-tag.active) {
+  color: #000 !important;
+}
+
+.nav-item.nav-tag::before {
+  background: #000;
+  opacity: 0.3;
+}
+
+.nav-item.nav-tag:hover::before,
+.nav-item.nav-tag.active::before {
+  opacity: 1;
 }
 
 .search-box {
-  width: 300px;
+  width: 280px;
   position: relative;
 }
 
@@ -308,6 +380,40 @@ const handleUserCommand = async (command) => {
 }
 
 /* 响应式设计 */
+@media (max-width: 1200px) {
+  .container {
+    max-width: 100%;
+    padding: 0 var(--spacing-md);
+  }
+  
+  .nav-menu {
+    gap: var(--spacing-sm);
+  }
+  
+  .search-box {
+    width: 220px;
+  }
+}
+
+@media (max-width: 900px) {
+  .header-content {
+    gap: var(--spacing-lg);
+  }
+  
+  .nav-group {
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+  
+  .search-box {
+    width: 200px;
+  }
+  
+  .username {
+    display: none;
+  }
+}
+
 @media (max-width: 768px) {
   .header-content {
     flex-wrap: wrap;
@@ -316,24 +422,34 @@ const handleUserCommand = async (command) => {
     gap: var(--spacing-md);
   }
   
-  .nav-menu {
-    order: 3;
-    width: 100%;
-    justify-content: center;
-    padding: var(--spacing-md) 0;
-    border-top: 1px solid var(--border-lighter);
-    margin-top: var(--spacing-md);
-  }
-  
-  .search-box {
-    width: 200px;
-    order: 2;
-  }
-  
   .logo {
     order: 1;
     width: 100%;
     justify-content: center;
+    margin-bottom: var(--spacing-md);
+  }
+  
+  .nav-menu {
+    order: 2;
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+  }
+  
+  .nav-divider {
+    display: none;
+  }
+  
+  .nav-group {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .search-box {
+    order: 3;
+    width: 100%;
+    max-width: 400px;
   }
   
   .user-area {
@@ -342,29 +458,35 @@ const handleUserCommand = async (command) => {
     justify-content: center;
     padding-top: var(--spacing-md);
   }
+  
+  .auth-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .auth-buttons .el-button {
+    flex: 1;
+    padding: 10px 20px;
+  }
 }
 
 @media (max-width: 480px) {
   .header-content {
     padding: var(--spacing-sm) 0;
-  }
-  
-  .search-box {
-    width: 100%;
-    max-width: 300px;
-  }
-  
-  .nav-menu {
-    gap: var(--spacing-md);
+    gap: var(--spacing-sm);
   }
   
   .nav-item {
-    padding: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 14px;
   }
   
-  .username {
-    display: none;
+  .nav-item .el-icon {
+    font-size: 14px;
+  }
+  
+  .search-box {
+    max-width: 100%;
   }
 }
 </style>

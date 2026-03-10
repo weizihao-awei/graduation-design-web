@@ -23,9 +23,31 @@
     
     <!-- 主要内容 -->
     <div class="container main-content">
-      <div class="content-grid">
+      <div class="content-layout">
         <!-- 左侧主要内容 -->
         <div class="main-section">
+          <!-- 推荐文章 -->
+          <section v-if="recommendArticles.length" class="featured-section">
+            <div class="section-header">
+              <h2 class="section-title">
+                <el-icon><Star /></el-icon>
+                推荐文章
+              </h2>
+              <router-link to="/articles?sort=recommend" class="more-link">
+                查看更多
+                <el-icon><ArrowRight /></el-icon>
+              </router-link>
+            </div>
+            <div class="featured-grid">
+              <ArticleCard 
+                v-for="article in recommendArticles" 
+                :key="article.id" 
+                :article="article"
+                class="featured-card"
+              />
+            </div>
+          </section>
+          
           <!-- 热门文章 -->
           <section class="section">
             <div class="section-header">
@@ -33,7 +55,10 @@
                 <el-icon><HotWater /></el-icon>
                 热门文章
               </h2>
-              <router-link to="/articles?sort=hot" class="more-link">更多 ></router-link>
+              <router-link to="/articles?sort=hot" class="more-link">
+                查看更多
+                <el-icon><ArrowRight /></el-icon>
+              </router-link>
             </div>
             <div class="article-list">
               <ArticleCard 
@@ -48,31 +73,17 @@
           <section class="section">
             <div class="section-header">
               <h2 class="section-title">
-                <el-icon><AlarmClock /></el-icon>
+                <el-icon><Clock /></el-icon>
                 最新文章
               </h2>
-              <router-link to="/articles?sort=newest" class="more-link">更多 ></router-link>
+              <router-link to="/articles?sort=newest" class="more-link">
+                查看更多
+                <el-icon><ArrowRight /></el-icon>
+              </router-link>
             </div>
             <div class="article-list">
               <ArticleCard 
                 v-for="article in latestArticles" 
-                :key="article.id" 
-                :article="article" 
-              />
-            </div>
-          </section>
-          
-          <!-- 推荐文章 -->
-          <section v-if="recommendArticles.length" class="section">
-            <div class="section-header">
-              <h2 class="section-title">
-                <el-icon><MagicStick /></el-icon>
-                推荐文章
-              </h2>
-            </div>
-            <div class="article-list">
-              <ArticleCard 
-                v-for="article in recommendArticles" 
                 :key="article.id" 
                 :article="article" 
               />
@@ -84,36 +95,62 @@
         <aside class="sidebar">
           <!-- 统计信息 -->
           <div class="widget statistics-widget">
-            <h3 class="widget-title">站点统计</h3>
+            <h3 class="widget-title">
+              <el-icon><DataAnalysis /></el-icon>
+              站点统计
+            </h3>
             <div class="stats-grid">
               <div class="stat-item">
-                <div class="stat-number">{{ statistics.userCount || 0 }}</div>
-                <div class="stat-label">用户</div>
+                <div class="stat-icon">
+                  <el-icon><User /></el-icon>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-number">{{ statistics.userCount || 0 }}</div>
+                  <div class="stat-label">用户</div>
+                </div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">{{ statistics.articleCount || 0 }}</div>
-                <div class="stat-label">文章</div>
+                <div class="stat-icon">
+                  <el-icon><Document /></el-icon>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-number">{{ statistics.articleCount || 0 }}</div>
+                  <div class="stat-label">文章</div>
+                </div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">{{ statistics.viewCount || 0 }}</div>
-                <div class="stat-label">浏览</div>
+                <div class="stat-icon">
+                  <el-icon><View /></el-icon>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-number">{{ statistics.viewCount || 0 }}</div>
+                  <div class="stat-label">浏览</div>
+                </div>
               </div>
               <div class="stat-item">
-                <div class="stat-number">{{ statistics.commentCount || 0 }}</div>
-                <div class="stat-label">评论</div>
+                <div class="stat-icon">
+                  <el-icon><ChatDotRound /></el-icon>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-number">{{ statistics.commentCount || 0 }}</div>
+                  <div class="stat-label">评论</div>
+                </div>
               </div>
             </div>
           </div>
           
           <!-- 热门标签 -->
           <div class="widget tags-widget">
-            <h3 class="widget-title">热门标签</h3>
+            <h3 class="widget-title">
+              <el-icon><PriceTag /></el-icon>
+              热门标签
+            </h3>
             <div class="tags-cloud">
               <el-tag
                 v-for="tag in hotTags"
                 :key="tag.id"
                 :color="tag.color"
-                size="small"
+                size="large"
                 class="tag-item"
                 @click="$router.push(`/tag/${tag.id}`)"
               >
@@ -124,12 +161,15 @@
           
           <!-- 分类导航 -->
           <div class="widget categories-widget">
-            <h3 class="widget-title">文章分类</h3>
+            <h3 class="widget-title">
+              <el-icon><Menu /></el-icon>
+              文章分类
+            </h3>
             <ul class="category-list">
               <li v-for="category in categories" :key="category.id" class="category-item">
                 <router-link :to="`/articles?categoryId=${category.id}`">
-                  {{ category.name }}
-                  <span class="count">({{ category.articleCount || 0 }})</span>
+                  <span class="category-name">{{ category.name }}</span>
+                  <span class="count">{{ category.articleCount || 0 }}</span>
                 </router-link>
               </li>
             </ul>
@@ -158,7 +198,19 @@ import { getHotTags } from '@/api/tag'
 import { getCategoryList } from '@/api/category'
 import { getStatistics } from '@/api/statistics'
 import { ElMessage } from 'element-plus'
-import { HotWater, AlarmClock, MagicStick } from '@element-plus/icons-vue'
+import { 
+  HotWater, 
+  Clock, 
+  Star, 
+  ArrowRight,
+  DataAnalysis,
+  User,
+  Document,
+  View,
+  ChatDotRound,
+  PriceTag,
+  Menu
+} from '@element-plus/icons-vue'
 
 const userStore = useUserStore()
 
@@ -250,14 +302,14 @@ onMounted(() => {
 <style scoped>
 .home-page {
   min-height: 100vh;
-  background: var(--bg-page);
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8f4fd 100%);
 }
 
 /* Banner样式 */
 .banner {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%);
+  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
   color: white;
-  padding: 100px 0;
+  padding: 80px 0;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -275,7 +327,7 @@ onMounted(() => {
 }
 
 .banner-content {
-  max-width: 800px;
+  max-width: 900px;
   margin: 0 auto;
   position: relative;
   z-index: 2;
@@ -284,253 +336,241 @@ onMounted(() => {
 .banner-title {
   font-size: 3.5rem;
   font-weight: 700;
-  margin-bottom: var(--spacing-lg);
-  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  animation: fadeIn 1s ease-out;
+  margin-bottom: 20px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  animation: fadeInDown 0.8s ease-out;
 }
 
 .banner-subtitle {
-  font-size: 1.3rem;
-  margin-bottom: var(--spacing-xl);
-  opacity: 0.9;
-  animation: fadeIn 1s ease-out 0.2s both;
+  font-size: 1.4rem;
+  margin-bottom: 40px;
+  opacity: 0.95;
+  animation: fadeInDown 0.8s ease-out 0.2s both;
 }
 
 .banner-actions {
   display: flex;
   justify-content: center;
-  gap: var(--spacing-lg);
-  animation: fadeIn 1s ease-out 0.4s both;
+  gap: 20px;
+  animation: fadeInDown 0.8s ease-out 0.4s both;
 }
 
 .banner-actions .el-button {
-  padding: 12px 30px;
+  padding: 14px 40px;
   font-size: 16px;
   font-weight: 600;
-  border-radius: var(--border-radius-xl);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  transition: var(--transition-base);
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .banner-actions .el-button:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 主要内容区域 */
 .main-content {
-  padding: var(--spacing-xl) 0;
+  padding: 40px 0;
 }
 
-.content-grid {
+.content-layout {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--spacing-xl);
+  grid-template-columns: 1fr 320px;
+  gap: 30px;
 }
 
 /* 主要部分 */
 .main-section {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-xl);
+  gap: 40px;
+}
+
+.featured-section {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(64, 158, 255, 0.1);
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.featured-card {
+  transition: transform 0.3s ease;
+}
+
+.featured-card:hover {
+  transform: translateY(-5px);
 }
 
 .section {
-  background: var(--bg-white);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-xl);
-  box-shadow: var(--shadow-card);
-  transition: var(--transition-base);
-  overflow: hidden;
-  position: relative;
-}
-
-.section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-  opacity: 0;
-  transition: var(--transition-fast);
-}
-
-.section:hover::before {
-  opacity: 1;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
 }
 
 .section:hover {
-  transform: translateY(-5px);
-  box-shadow: var(--shadow-hover);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-lighter);
+  margin-bottom: 25px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid #e9ecef;
 }
 
 .section-title {
   margin: 0;
   font-size: 1.5rem;
-  color: var(--text-primary);
+  color: #2c3e50;
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
-  font-weight: 600;
+  gap: 10px;
+  font-weight: 700;
 }
 
 .section-title .el-icon {
-  color: var(--primary-color);
-  font-size: 1.2em;
+  color: #409eff;
+  font-size: 1.3em;
 }
 
 .more-link {
-  color: var(--primary-color);
+  color: #409eff;
   text-decoration: none;
   font-size: 14px;
-  font-weight: 500;
-  transition: var(--transition-fast);
-  position: relative;
-}
-
-.more-link::after {
-  content: '';
-  position: absolute;
-  bottom: -2px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--primary-color);
-  transition: var(--transition-fast);
+  font-weight: 600;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 6px;
 }
 
 .more-link:hover {
-  color: var(--primary-dark);
-}
-
-.more-link:hover::after {
-  width: 100%;
+  background: rgba(64, 158, 255, 0.1);
+  transform: translateX(5px);
 }
 
 .article-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 15px;
 }
 
 /* 侧边栏 */
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  gap: 25px;
 }
 
 .widget {
-  background: var(--bg-white);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-card);
-  transition: var(--transition-base);
-  position: relative;
-  overflow: hidden;
-}
-
-.widget::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
-  opacity: 0.1;
-  border-radius: 0 0 0 60px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 16px;
+  padding: 25px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
 }
 
 .widget:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-hover);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .widget-title {
-  margin: 0 0 var(--spacing-lg) 0;
+  margin: 0 0 20px 0;
   font-size: 1.2rem;
-  color: var(--text-primary);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-lighter);
-  font-weight: 600;
-  position: relative;
+  color: #2c3e50;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  padding-bottom: 15px;
+  border-bottom: 2px solid #e9ecef;
 }
 
-.widget-title::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 40px;
-  height: 2px;
-  background: var(--primary-color);
+.widget-title .el-icon {
+  color: #409eff;
+  font-size: 1.2em;
 }
 
 /* 统计小部件 */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: var(--spacing-md);
+  gap: 15px;
 }
 
 .stat-item {
-  text-align: center;
-  padding: var(--spacing-lg);
-  background: var(--bg-page);
-  border-radius: var(--border-radius-lg);
-  transition: var(--transition-base);
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--primary-color), var(--primary-light));
-  transform: scaleX(0);
-  transition: var(--transition-base);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(64, 158, 255, 0.05);
+  border-radius: 10px;
+  transition: all 0.3s ease;
 }
 
 .stat-item:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-light);
+  background: rgba(64, 158, 255, 0.1);
+  transform: translateX(5px);
 }
 
-.stat-item:hover::before {
-  transform: scaleX(1);
+.stat-icon {
+  width: 45px;
+  height: 45px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #409eff 0%, #67c23a 100%);
+  border-radius: 10px;
+  color: white;
+  font-size: 20px;
+}
+
+.stat-info {
+  flex: 1;
 }
 
 .stat-number {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
   font-weight: 700;
-  color: var(--primary-color);
-  margin-bottom: var(--spacing-sm);
-  transition: var(--transition-fast);
-}
-
-.stat-item:hover .stat-number {
-  transform: scale(1.1);
+  color: #409eff;
+  margin-bottom: 3px;
 }
 
 .stat-label {
   font-size: 0.9rem;
-  color: var(--text-secondary);
+  color: #6c757d;
   font-weight: 500;
 }
 
@@ -538,38 +578,39 @@ onMounted(() => {
 .tags-cloud {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
+  gap: 12px;
 }
 
 .tag-item {
   cursor: pointer;
-  transition: var(--transition-base);
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  padding: 8px 16px;
+  font-weight: 600;
 }
 
 .tag-item::before {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  border-radius: inherit;
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
 }
 
 .tag-item:hover {
   transform: scale(1.1);
-  box-shadow: var(--shadow-light);
+  box-shadow: 0 4px 12px rgba(64, 158, 255, 0.3);
   z-index: 1;
 }
 
 .tag-item:hover::before {
-  width: 100px;
-  height: 100px;
+  transform: scaleX(1);
 }
 
 /* 分类列表 */
@@ -580,67 +621,72 @@ onMounted(() => {
 }
 
 .category-item {
-  padding: var(--spacing-md) 0;
-  border-bottom: 1px solid var(--border-lighter);
-  transition: var(--transition-fast);
-  position: relative;
-}
-
-.category-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 0;
-  height: 0;
-  background: var(--primary-color);
-  border-radius: 50%;
-  transform: translateY(-50%);
-  transition: width 0.3s, height 0.3s;
-}
-
-.category-item:hover {
-  padding-left: var(--spacing-md);
-  border-bottom-color: var(--primary-light);
-}
-
-.category-item:hover::before {
-  width: 4px;
-  height: 4px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e9ecef;
+  transition: all 0.3s ease;
 }
 
 .category-item:last-child {
   border-bottom: none;
 }
 
+.category-item:hover {
+  background: rgba(64, 158, 255, 0.05);
+  padding-left: 15px;
+  border-bottom-color: #409eff;
+}
+
 .category-item a {
-  color: var(--text-regular);
+  color: #2c3e50;
   text-decoration: none;
   display: flex;
   justify-content: space-between;
-  transition: var(--transition-fast);
+  align-items: center;
   font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .category-item a:hover {
-  color: var(--primary-color);
+  color: #409eff;
+}
+
+.category-name {
+  font-size: 15px;
 }
 
 .count {
-  color: var(--text-secondary);
-  font-size: 14px;
-  background: var(--bg-page);
-  padding: 2px 8px;
-  border-radius: var(--border-radius-base);
+  color: #6c757d;
+  font-size: 13px;
+  background: rgba(64, 158, 255, 0.1);
+  padding: 3px 10px;
+  border-radius: 12px;
   font-weight: 600;
 }
 
 /* 响应式设计 */
-@media (max-width: 768px) {
-  .content-grid {
+@media (max-width: 1200px) {
+  .content-layout {
+    grid-template-columns: 1fr 280px;
+  }
+  
+  .featured-grid {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .content-layout {
     grid-template-columns: 1fr;
   }
   
+  .sidebar {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+  }
+}
+
+@media (max-width: 768px) {
   .banner {
     padding: 60px 0;
   }
@@ -649,41 +695,105 @@ onMounted(() => {
     font-size: 2.5rem;
   }
   
+  .banner-subtitle {
+    font-size: 1.2rem;
+  }
+  
   .banner-actions {
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-md);
+    gap: 15px;
   }
   
   .banner-actions .el-button {
     width: 200px;
   }
   
+  .main-content {
+    padding: 30px 0;
+  }
+  
+  .content-layout {
+    gap: 25px;
+  }
+  
+  .featured-grid {
+    grid-template-columns: 1fr;
+  }
+  
   .stats-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--spacing-sm);
+    gap: 10px;
   }
   
   .stat-item {
-    padding: var(--spacing-md);
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+    padding: 12px;
+  }
+  
+  .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
   }
   
   .stat-number {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
   }
 }
 
 @media (max-width: 480px) {
+  .banner {
+    padding: 40px 0;
+  }
+  
   .banner-title {
     font-size: 2rem;
   }
   
   .banner-subtitle {
+    font-size: 1rem;
+  }
+  
+  .banner-actions .el-button {
+    width: 100%;
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .main-content {
+    padding: 20px 0;
+  }
+  
+  .section,
+  .widget,
+  .featured-section {
+    padding: 20px;
+  }
+  
+  .section-header {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+  }
+  
+  .section-title {
+    font-size: 1.3rem;
+  }
+  
+  .widget-title {
     font-size: 1.1rem;
+    padding-bottom: 12px;
   }
   
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .sidebar {
+    display: flex;
+    flex-direction: column;
   }
 }
 </style>
