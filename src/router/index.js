@@ -1,12 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
-// 路由配置
 const routes = [
   {
     path: '/',
     name: 'Home',
-    redirect: '/articles?sort=recommend',
+    redirect: '/recommend-articles',
     meta: { title: '首页' }
   },
   {
@@ -32,6 +31,30 @@ const routes = [
     name: 'Articles',
     component: () => import('@/views/Articles.vue'),
     meta: { title: '文章列表' }
+  },
+  {
+    path: '/hot-articles',
+    name: 'HotArticles',
+    component: () => import('@/views/HotArticles.vue'),
+    meta: { title: '热门文章' }
+  },
+  {
+    path: '/latest-articles',
+    name: 'LatestArticles',
+    component: () => import('@/views/LatestArticles.vue'),
+    meta: { title: '最新文章' }
+  },
+  {
+    path: '/recommend-articles',
+    name: 'RecommendArticles',
+    component: () => import('@/views/RecommendArticles.vue'),
+    meta: { title: '推荐文章' }
+  },
+  {
+    path: '/article-query',
+    name: 'ArticleQuery',
+    component: () => import('@/views/ArticleQuery.vue'),
+    meta: { title: '文章搜索' }
   },
   {
     path: '/article/:id',
@@ -103,12 +126,9 @@ const router = createRouter({
   routes
 })
 
-// 路由守卫
 router.beforeEach((to, from, next) => {
-  // 设置页面标题
   document.title = to.meta.title ? `${to.meta.title} - 博客系统` : '博客系统'
   
-  // 检查是否需要认证
   if (to.meta.requiresAuth) {
     const token = localStorage.getItem('token')
     if (!token) {
@@ -117,7 +137,6 @@ router.beforeEach((to, from, next) => {
       return
     }
     
-    // 检查是否需要管理员权限
     if (to.meta.requiresAdmin) {
       const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
       if (userInfo.role !== 1) {
