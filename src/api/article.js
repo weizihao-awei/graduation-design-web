@@ -96,7 +96,7 @@ export function uncollectArticle(articleId) {
 // 获取热门文章（公开）
 export function getHotArticles(data = { pageNum: 1, pageSize: 10 }) {
   return request({
-    url: '/api/article/hot',
+    url: '/article/hot',
     method: 'post',
     data
   })
@@ -105,7 +105,7 @@ export function getHotArticles(data = { pageNum: 1, pageSize: 10 }) {
 // 获取最新文章（公开）
 export function getLatestArticles(data = { pageNum: 1, pageSize: 10 }) {
   return request({
-    url: '/api/article/latest',
+    url: '/article/latest',
     method: 'post',
     data
   })
@@ -114,7 +114,7 @@ export function getLatestArticles(data = { pageNum: 1, pageSize: 10 }) {
 // 获取推荐文章（公开）
 export function getRecommendArticles(data = { pageNum: 1, pageSize: 10 }) {
   return request({
-    url: '/api/article/recommend',
+    url: '/article/recommend',
     method: 'post',
     data
   })
