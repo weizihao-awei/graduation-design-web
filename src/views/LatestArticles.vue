@@ -1,65 +1,55 @@
 <template>
   <div class="latest-articles-page">
     <Header />
-    
+
     <div class="container">
       <div class="page-header">
         <h1 class="page-title">
-          <el-icon><Clock /></el-icon>
+          <el-icon>
+            <Clock />
+          </el-icon>
           最新文章
         </h1>
         <p class="page-description">最新发布的文章</p>
       </div>
-      
+
       <div class="content-grid">
         <div class="main-section">
           <div class="article-list" ref="articleListRef">
-            <ArticleCard 
-              v-for="article in articles" 
-              :key="article.id" 
-              :article="article" 
+            <ArticleCard v-for="article in articles" :key="article.id" :article="article"
               :show-actions="userStore.isLogin && (userStore.isAdmin || userStore.userInfo.id === article.authorId)"
-              @delete="handleDeleteArticle"
-            />
+              @delete="handleDeleteArticle" />
           </div>
-          
+
           <div class="load-more" ref="loadMoreRef">
-            <el-button 
-              v-if="hasMore && !loading"
-              type="primary" 
-              @click="loadMore"
-            >
+            <el-button v-if="hasMore && !loading" type="primary" @click="loadMore">
               加载更多
             </el-button>
             <div v-else-if="loading" class="loading-text">
-              <el-icon class="is-loading"><Loading /></el-icon>
+              <el-icon class="is-loading">
+                <Loading />
+              </el-icon>
               加载中...
             </div>
             <div v-else-if="articles.length > 0" class="no-more-text">
               没有更多了
             </div>
           </div>
-          
+
           <el-empty v-if="!loading && articles.length === 0" description="暂无最新文章" />
         </div>
-        
+
         <aside class="sidebar">
           <div class="widget">
             <h3 class="widget-title">热门标签</h3>
             <div class="tags-cloud">
-              <el-tag
-                v-for="tag in hotTags"
-                :key="tag.id"
-                :color="tag.color"
-                size="small"
-                class="tag-item"
-                @click="handleTagClick(tag)"
-              >
+              <el-tag v-for="tag in hotTags" :key="tag.id" :color="tag.color" size="small" class="tag-item"
+                @click="handleTagClick(tag)">
                 {{ tag.name }}
               </el-tag>
             </div>
           </div>
-          
+
           <div class="widget">
             <h3 class="widget-title">文章分类</h3>
             <ul class="category-list">
@@ -74,104 +64,137 @@
         </aside>
       </div>
     </div>
-    
+
     <Footer />
   </div>
 </template>
 
 <script setup>
+// 导入 Vue 组合式 API
 import { ref, onMounted, onUnmounted } from 'vue'
+// 导入 Vue Router 用于页面跳转
 import { useRouter } from 'vue-router'
+// 导入页面组件
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
+// 导入用户状态管理
 import { useUserStore } from '@/store'
+// 导入 API 接口
 import { getLatestArticles, deleteArticle } from '@/api/article'
 import { getHotTags } from '@/api/tag'
 import { getCategoryList } from '@/api/category'
+// 导入 Element Plus 组件和工具
 import { ElMessage } from 'element-plus'
 import { Clock, Loading } from '@element-plus/icons-vue'
 
+// 初始化路由
 const router = useRouter()
+// 获取用户状态管理实例
 const userStore = useUserStore()
 
-const articles = ref([])
-const categories = ref([])
-const hotTags = ref([])
-const loading = ref(false)
-const hasMore = ref(true)
-const pageNum = ref(1)
-const pageSize = ref(10)
+// 响应式数据定义
+const articles = ref([])           // 文章列表数据
+const categories = ref([])          // 文章分类列表
+const hotTags = ref([])            // 热门标签列表
+const loading = ref(false)         // 加载状态标识
+const hasMore = ref(true)          // 是否还有更多数据
+const pageNum = ref(1)             // 当前页码
+const pageSize = ref(10)           // 每页显示数量
 
-const articleListRef = ref(null)
-const loadMoreRef = ref(null)
-let observer = null
+// DOM 元素引用
+const articleListRef = ref(null)   // 文章列表容器引用
+const loadMoreRef = ref(null)      // 加载更多按钮容器引用
+let observer = null                // IntersectionObserver 实例
 
+// 获取文章列表数据
+// reset: 是否重置列表（从头开始加载）
 const fetchArticles = async (reset = false) => {
+  // 防止重复加载
   if (loading.value) return
-  
+
   try {
+    // 设置加载状态
     loading.value = true
-    
+
+    // 如果需要重置，则重置页码和文章列表
     if (reset) {
       pageNum.value = 1
       articles.value = []
       hasMore.value = true
     }
-    
+
+    // 调用 API 获取文章数据
     const res = await getLatestArticles({
       pageNum: pageNum.value,
       pageSize: pageSize.value
     })
-    
+
+    // 根据是否重置来更新文章列表
     if (reset) {
+      // 重置时直接替换列表
       articles.value = res.data.list || []
     } else {
+      // 加载更多时将新数据追加到现有列表
       articles.value = [...articles.value, ...(res.data.list || [])]
     }
+    // 更新是否有更多数据的标识
     hasMore.value = res.data.hasNextPage
   } catch (error) {
     console.error('获取最新文章失败:', error)
     ElMessage.error('获取最新文章失败')
   } finally {
+    // 无论成功失败都关闭加载状态
     loading.value = false
   }
 }
 
+// 加载更多文章
 const loadMore = () => {
+  // 如果没有更多数据或正在加载，则不执行
   if (!hasMore.value || loading.value) return
+  // 页码加1
   pageNum.value++
+  // 获取下一页数据
   fetchArticles()
 }
 
+// 初始化 IntersectionObserver（无限滚动监听器）
 const initIntersectionObserver = () => {
+  // 如果已存在观察器，先断开连接
   if (observer) {
     observer.disconnect()
   }
-  
+
+  // 创建新的 IntersectionObserver 实例
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
+        // 当元素进入视口且还有更多数据且未在加载时，触发加载更多
         if (entry.isIntersecting && hasMore.value && !loading.value) {
           loadMore()
         }
       })
     },
     {
-      rootMargin: '100px',
-      threshold: 0.1
+      rootMargin: '100px',    // 提前100px触发加载
+      threshold: 0.1          // 元素显示10%时触发
     }
   )
-  
+
+  // 开始观察加载更多按钮容器
   if (loadMoreRef.value) {
     observer.observe(loadMoreRef.value)
   }
 }
 
+// 处理删除文章
 const handleDeleteArticle = async (articleId) => {
   try {
+    // 调用删除文章 API
     await deleteArticle(articleId)
     ElMessage.success('删除成功')
+    // 重新加载文章列表
     fetchArticles(true)
   } catch (error) {
     console.error('删除文章失败:', error)
@@ -179,6 +202,7 @@ const handleDeleteArticle = async (articleId) => {
   }
 }
 
+// 获取分类列表数据
 const fetchCategories = async () => {
   try {
     const res = await getCategoryList()
@@ -188,8 +212,10 @@ const fetchCategories = async () => {
   }
 }
 
+// 获取热门标签数据
 const fetchHotTags = async () => {
   try {
+    // 获取前20个热门标签
     const res = await getHotTags(20)
     hotTags.value = res.data
   } catch (error) {
@@ -197,34 +223,46 @@ const fetchHotTags = async () => {
   }
 }
 
+// 处理标签点击事件
 const handleTagClick = (tag) => {
+  // 跳转到文章列表页并携带标签ID参数
   router.push({
     path: '/articles',
     query: { tagId: tag.id }
   })
 }
 
+// 处理分类点击事件
 const handleCategoryClick = (category) => {
+  // 跳转到文章列表页并携带分类ID参数
   router.push({
     path: '/articles',
     query: { categoryId: category.id }
   })
 }
 
+// 初始化页面数据
 const initData = async () => {
+  // 并发请求分类和标签数据
   await Promise.all([
     fetchCategories(),
     fetchHotTags()
   ])
+  // 获取文章列表
   fetchArticles(true)
 }
 
+// 组件挂载时执行
 onMounted(() => {
+  // 初始化数据
   initData()
+  // 初始化无限滚动监听器
   initIntersectionObserver()
 })
 
+// 组件卸载时执行
 onUnmounted(() => {
+  // 断开观察器连接，避免内存泄漏
   if (observer) {
     observer.disconnect()
   }
@@ -246,39 +284,65 @@ onUnmounted(() => {
 .page-header {
   text-align: center;
   margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-xl) 0;
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 60px 40px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
   border-radius: var(--border-radius-xl);
-  color: white;
+  color: #2c3e50;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .page-header::before {
   content: '';
   position: absolute;
   top: -50%;
-  right: -50%;
-  width: 100%;
+  right: -30%;
+  width: 80%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
+  animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateY(-20px) rotate(5deg);
+  }
 }
 
 .page-title {
   margin: 0 0 var(--spacing-md) 0;
   font-size: 2rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-sm);
+  gap: 12px;
   position: relative;
+  color: #34495e;
+  letter-spacing: 0.5px;
+}
+
+.page-title .el-icon {
+  font-size: 2.2rem;
+  color: #667eea;
+  filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
 }
 
 .page-description {
   margin: 0;
-  font-size: 1.1rem;
-  opacity: 0.9;
+  font-size: 1rem;
+  color: #7f8c8d;
   position: relative;
+  font-weight: 400;
+  letter-spacing: 0.3px;
 }
 
 .content-grid {
@@ -509,12 +573,12 @@ onUnmounted(() => {
   .content-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .sidebar {
     position: static;
     order: 2;
   }
-  
+
   .page-title {
     font-size: 1.5rem;
   }
