@@ -36,11 +36,10 @@
                 
                 <div class="filter-item">
                   <label>排序：</label>
-                  <el-select v-model="filters.sort" placeholder="默认排序" @change="handleFilterChange">
+                  <el-select v-model="filters.orderBy" placeholder="默认排序" @change="handleFilterChange">
                     <el-option label="推荐" value="recommend" />
                     <el-option label="热门" value="hot" />
-                    <el-option label="最新" value="newest" />
-                    <el-option label="最多点赞" value="liked" />
+                    <el-option label="最新" value="latest" />
                   </el-select>
                 </div>
               </div>
@@ -60,8 +59,8 @@
             </el-card>
           </div>
           
-          <!-- 文章列表 -->
-          <div class="article-list">
+          <!-- 文章列表 - 瀑布流 -->
+          <div class="article-list" ref="articleListRef">
             <ArticleCard 
               v-for="article in articles" 
               :key="article.id" 
@@ -71,15 +70,22 @@
             />
           </div>
           
-          <!-- 加载更多 -->
-          <div class="load-more" v-if="hasMore">
+          <!-- 加载更多指示器 -->
+          <div class="load-more" ref="loadMoreRef">
             <el-button 
+              v-if="hasMore && !loading"
               type="primary" 
-              :loading="loading" 
               @click="loadMore"
             >
-              {{ loading ? '加载中...' : '加载更多' }}
+              加载更多
             </el-button>
+            <div v-else-if="loading" class="loading-text">
+              <el-icon class="is-loading"><Loading /></el-icon>
+              加载中...
+            </div>
+            <div v-else-if="articles.length > 0" class="no-more-text">
+              没有更多了
+            </div>
           </div>
           
           <!-- 空状态 -->
@@ -126,7 +132,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
@@ -134,16 +140,14 @@ import ArticleCard from '@/components/ArticleCard.vue'
 import Pagination from '@/components/Pagination.vue'
 import { useUserStore } from '@/store'
 import { 
-  getArticleList, 
+  queryArticles,
   getArticlesByTag,
-  getHotArticles,
-  getRecommendArticles,
   deleteArticle 
 } from '@/api/article'
 import { getTagList, getHotTags } from '@/api/tag'
 import { getCategoryList } from '@/api/category'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search } from '@element-plus/icons-vue'
+import { Search, Loading } from '@element-plus/icons-vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -159,11 +163,16 @@ const hasMore = ref(true)
 const pageNum = ref(1)
 const pageSize = ref(10)
 
+// 瀑布流相关
+const articleListRef = ref(null)
+const loadMoreRef = ref(null)
+let observer = null
+
 // 筛选条件
 const filters = reactive({
   categoryId: null,
   tagId: null,
-  sort: 'recommend',
+  orderBy: 'latest',
   keyword: ''
 })
 
@@ -180,15 +189,19 @@ const fetchArticles = async (reset = false) => {
       hasMore.value = true
     }
     
-    let params = {
+    let data = {
       pageNum: pageNum.value,
       pageSize: pageSize.value
     }
     
     // 根据不同情况调用不同接口
     if (filters.tagId) {
-      // 按标签筛选
-      const res = await getArticlesByTag(filters.tagId, params)
+      // 按标签筛选 - 使用通用查询接口
+      data.tagId = filters.tagId
+      if (filters.orderBy) data.orderBy = filters.orderBy
+      if (filters.keyword) data.keyword = filters.keyword
+      
+      const res = await queryArticles(data)
       if (reset) {
         articles.value = res.data.list || []
       } else {
@@ -196,40 +209,18 @@ const fetchArticles = async (reset = false) => {
       }
       hasMore.value = res.data.hasNextPage
     } else {
-      // 常规筛选
-      if (filters.categoryId) params.categoryId = filters.categoryId
-      if (filters.keyword) params.keyword = filters.keyword
+      // 常规筛选 - 使用通用查询接口
+      if (filters.categoryId) data.categoryId = filters.categoryId
+      if (filters.keyword) data.keyword = filters.keyword
+      if (filters.orderBy) data.orderBy = filters.orderBy
       
-      // 根据排序方式调用不同接口
-      let res
-      if (filters.sort === 'recommend' && !filters.categoryId && !filters.keyword) {
-        // 获取推荐文章
-        res = await getRecommendArticles(pageSize.value)
-        if (reset) {
-          articles.value = res.data || []
-        } else {
-          articles.value = [...articles.value, ...(res.data || [])]
-        }
-        hasMore.value = false // 推荐文章不分页
-      } else if (filters.sort === 'hot' && !filters.categoryId && !filters.keyword) {
-        // 获取热门文章
-        res = await getHotArticles(pageSize.value)
-        if (reset) {
-          articles.value = res.data || []
-        } else {
-          articles.value = [...articles.value, ...(res.data || [])]
-        }
-        hasMore.value = false // 热门文章不分页
+      const res = await queryArticles(data)
+      if (reset) {
+        articles.value = res.data.list || []
       } else {
-        // 常规文章列表
-        res = await getArticleList(params)
-        if (reset) {
-          articles.value = res.data.list || []
-        } else {
-          articles.value = [...articles.value, ...(res.data.list || [])]
-        }
-        hasMore.value = res.data.hasNextPage
+        articles.value = [...articles.value, ...(res.data.list || [])]
       }
+      hasMore.value = res.data.hasNextPage
     }
   } catch (error) {
     console.error('获取文章列表失败:', error)
@@ -244,6 +235,31 @@ const loadMore = () => {
   if (!hasMore.value || loading.value) return
   pageNum.value++
   fetchArticles()
+}
+
+// 初始化瀑布流滚动监听
+const initIntersectionObserver = () => {
+  if (observer) {
+    observer.disconnect()
+  }
+  
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting && hasMore.value && !loading.value) {
+          loadMore()
+        }
+      })
+    },
+    {
+      rootMargin: '100px',
+      threshold: 0.1
+    }
+  )
+  
+  if (loadMoreRef.value) {
+    observer.observe(loadMoreRef.value)
+  }
 }
 
 // 处理筛选条件变化
@@ -315,27 +331,34 @@ const initData = async () => {
   ])
   
   // 处理路由参数
-  const { categoryId, tagId, keyword, sort } = route.query
+  const { categoryId, tagId, keyword, orderBy } = route.query
   if (categoryId) filters.categoryId = parseInt(categoryId)
   if (tagId) filters.tagId = parseInt(tagId)
   if (keyword) filters.keyword = keyword
-  if (sort) filters.sort = sort
+  if (orderBy) filters.orderBy = orderBy
   
   fetchArticles(true)
 }
 
 // 监听路由变化
 watch(() => route.query, () => {
-  const { categoryId, tagId, keyword, sort } = route.query
+  const { categoryId, tagId, keyword, orderBy } = route.query
   if (categoryId) filters.categoryId = parseInt(categoryId)
   if (tagId) filters.tagId = parseInt(tagId)
   if (keyword) filters.keyword = keyword
-  if (sort) filters.sort = sort
+  if (orderBy) filters.orderBy = orderBy
   fetchArticles(true)
 }, { immediate: false })
 
 onMounted(() => {
   initData()
+  initIntersectionObserver()
+})
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect()
+  }
 })
 </script>
 
@@ -407,10 +430,28 @@ onMounted(() => {
   width: 100%;
 }
 
+/* 文章列表 - 瀑布流 */
+.article-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+@media (max-width: 768px) {
+  .article-list {
+    grid-template-columns: 1fr;
+  }
+}
+
 .load-more {
   text-align: center;
   margin-top: var(--spacing-xl);
   padding: var(--spacing-lg);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .load-more .el-button {
@@ -425,6 +466,26 @@ onMounted(() => {
 .load-more .el-button:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-hover);
+}
+
+.loading-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.loading-text .el-icon {
+  font-size: 18px;
+}
+
+.no-more-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+  padding: 10px 20px;
+  background: var(--bg-page);
+  border-radius: var(--border-radius-base);
 }
 
 /* 侧边栏 */

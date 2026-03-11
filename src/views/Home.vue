@@ -225,8 +225,8 @@ const statistics = ref({})
 // 获取热门文章
 const fetchHotArticles = async () => {
   try {
-    const res = await getHotArticles(5)
-    hotArticles.value = res.data
+    const res = await getHotArticles({ pageNum: 1, pageSize: 5 })
+    hotArticles.value = res.data.list || []
   } catch (error) {
     console.error('获取热门文章失败:', error)
   }
@@ -235,8 +235,8 @@ const fetchHotArticles = async () => {
 // 获取最新文章
 const fetchLatestArticles = async () => {
   try {
-    const res = await getLatestArticles(5)
-    latestArticles.value = res.data
+    const res = await getLatestArticles({ pageNum: 1, pageSize: 5 })
+    latestArticles.value = res.data.list || []
   } catch (error) {
     console.error('获取最新文章失败:', error)
   }
@@ -245,8 +245,8 @@ const fetchLatestArticles = async () => {
 // 获取推荐文章
 const fetchRecommendArticles = async () => {
   try {
-    const res = await getRecommendArticles(5)
-    recommendArticles.value = res.data
+    const res = await getRecommendArticles({ pageNum: 1, pageSize: 5 })
+    recommendArticles.value = res.data.list || []
   } catch (error) {
     console.error('获取推荐文章失败:', error)
   }

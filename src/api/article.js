@@ -1,5 +1,14 @@
 import request from '@/utils/request'
 
+// 通用文章查询接口（公开）
+export function queryArticles(data) {
+  return request({
+    url: '/api/article/query',
+    method: 'post',
+    data
+  })
+}
+
 // 获取文章列表（公开）
 export function getArticleList(params) {
   return request({
@@ -85,29 +94,29 @@ export function uncollectArticle(articleId) {
 }
 
 // 获取热门文章（公开）
-export function getHotArticles(limit = 10) {
+export function getHotArticles(data = { pageNum: 1, pageSize: 10 }) {
   return request({
-    url: '/article/hot',
-    method: 'get',
-    params: { limit }
+    url: '/api/article/hot',
+    method: 'post',
+    data
   })
 }
 
 // 获取最新文章（公开）
-export function getLatestArticles(limit = 10) {
+export function getLatestArticles(data = { pageNum: 1, pageSize: 10 }) {
   return request({
-    url: '/article/latest',
-    method: 'get',
-    params: { limit }
+    url: '/api/article/latest',
+    method: 'post',
+    data
   })
 }
 
 // 获取推荐文章（公开）
-export function getRecommendArticles(limit = 10) {
+export function getRecommendArticles(data = { pageNum: 1, pageSize: 10 }) {
   return request({
-    url: '/article/recommend',
-    method: 'get',
-    params: { limit }
+    url: '/api/article/recommend',
+    method: 'post',
+    data
   })
 }
 
