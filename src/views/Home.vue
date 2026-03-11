@@ -33,7 +33,7 @@
                 <el-icon><Star /></el-icon>
                 推荐文章
               </h2>
-              <router-link to="/articles?sort=recommend" class="more-link">
+              <router-link to="/articles?orderBy=recommend" class="more-link">
                 查看更多
                 <el-icon><ArrowRight /></el-icon>
               </router-link>
@@ -55,7 +55,7 @@
                 <el-icon><HotWater /></el-icon>
                 热门文章
               </h2>
-              <router-link to="/articles?sort=hot" class="more-link">
+              <router-link to="/articles?orderBy=hot" class="more-link">
                 查看更多
                 <el-icon><ArrowRight /></el-icon>
               </router-link>
@@ -76,7 +76,7 @@
                 <el-icon><Clock /></el-icon>
                 最新文章
               </h2>
-              <router-link to="/articles?sort=newest" class="more-link">
+              <router-link to="/articles?orderBy=latest" class="more-link">
                 查看更多
                 <el-icon><ArrowRight /></el-icon>
               </router-link>

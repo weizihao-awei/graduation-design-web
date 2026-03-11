@@ -3,7 +3,7 @@ import request from '@/utils/request'
 // 通用文章查询接口（公开）
 export function queryArticles(data) {
   return request({
-    url: '/api/article/query',
+    url: '/article/query',
     method: 'post',
     data
   })
