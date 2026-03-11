@@ -295,7 +295,7 @@ onUnmounted(() => {
 
 .article-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  grid-template-columns: 1fr;
   gap: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
 }
