@@ -28,8 +28,10 @@
                   {{ article.viewCount }}
                 </span>
                 <span class="stat-item">
-                  <el-icon>赞</el-icon>
-                  {{ article.likeCount }}
+                  <el-icon>
+                    <Star />
+                  </el-icon>
+                  {{ article.collectionCount }}
                 </span>
                 <span class="stat-item">
                   <el-icon>

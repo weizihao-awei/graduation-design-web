@@ -17,7 +17,7 @@
 
         <!-- 标签 -->
         <div v-if="article.tags && article.tags.length" class="article-tags">
-          <el-tag v-for="tag in article.tags" :key="tag.id" :color="tag.color" size="small"
+          <el-tag v-for="tag in article.tags" :key="tag.id" size="small"
             @click="handleTagClick(tag)">
             {{ tag.name }}
           </el-tag>

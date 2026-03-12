@@ -5,11 +5,13 @@
         <!-- Logo -->
         <div class="logo">
           <router-link to="/">
-            <el-icon size="24"><Promotion /></el-icon>
+            <el-icon size="24">
+              <Promotion />
+            </el-icon>
             <span>博客系统</span>
           </router-link>
         </div>
-        
+
         <!-- 导航菜单 -->
         <nav class="nav-menu">
           <router-link to="/recommend-articles" class="nav-item" active-class="active">推荐</router-link>
@@ -20,25 +22,20 @@
           <div class="nav-divider"></div>
           <router-link to="/articles" class="nav-item" active-class="active">全部文章</router-link>
           <div class="nav-divider"></div>
-          <router-link to="/article-query" class="nav-item" active-class="active">搜索</router-link>
-          <div class="nav-divider"></div>
           <router-link to="/tags" class="nav-item nav-tag" style="color: #000 !important;">标签</router-link>
+          <div class="nav-divider"></div>
+          <router-link to="/write" class="nav-item nav-write" active-class="active">写文章</router-link>
         </nav>
-        
+
         <!-- 搜索框 -->
         <div class="search-box">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="搜索文章..."
-            clearable
-            @keyup.enter="handleSearch"
-          >
+          <el-input v-model="searchKeyword" placeholder="搜索文章..." clearable @keyup.enter="handleSearch">
             <template #append>
               <el-button :icon="Search" @click="handleSearch" />
             </template>
           </el-input>
         </div>
-        
+
         <!-- 用户区域 -->
         <div class="user-area">
           <template v-if="userStore.isLogin">
@@ -49,7 +46,9 @@
                   {{ userStore.userInfo.nickname?.charAt(0) }}
                 </el-avatar>
                 <span class="username">{{ userStore.userInfo.nickname }}</span>
-                <el-icon><ArrowDown /></el-icon>
+                <el-icon>
+                  <ArrowDown />
+                </el-icon>
               </div>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -298,6 +297,21 @@ const handleUserCommand = async (command) => {
   opacity: 1;
 }
 
+.nav-item.nav-write {
+  color: var(--primary-color) !important;
+  font-weight: 600;
+}
+
+.nav-item.nav-write::before {
+  background: var(--primary-color);
+  opacity: 0.3;
+}
+
+.nav-item.nav-write:hover::before,
+.nav-item.nav-write.active::before {
+  opacity: 1;
+}
+
 .search-box {
   width: 280px;
   position: relative;
@@ -392,11 +406,11 @@ const handleUserCommand = async (command) => {
     max-width: 100%;
     padding: 0 var(--spacing-md);
   }
-  
+
   .nav-menu {
     gap: var(--spacing-sm);
   }
-  
+
   .search-box {
     width: 220px;
   }
@@ -406,16 +420,16 @@ const handleUserCommand = async (command) => {
   .header-content {
     gap: var(--spacing-lg);
   }
-  
+
   .nav-group {
     flex-direction: column;
     gap: var(--spacing-sm);
   }
-  
+
   .search-box {
     width: 200px;
   }
-  
+
   .username {
     display: none;
   }
@@ -428,14 +442,14 @@ const handleUserCommand = async (command) => {
     padding: var(--spacing-md) 0;
     gap: var(--spacing-md);
   }
-  
+
   .logo {
     order: 1;
     width: 100%;
     justify-content: center;
     margin-bottom: var(--spacing-md);
   }
-  
+
   .nav-menu {
     order: 2;
     width: 100%;
@@ -443,34 +457,34 @@ const handleUserCommand = async (command) => {
     flex-wrap: wrap;
     gap: var(--spacing-sm);
   }
-  
+
   .nav-divider {
     display: none;
   }
-  
+
   .nav-group {
     flex-wrap: wrap;
     justify-content: center;
   }
-  
+
   .search-box {
     order: 3;
     width: 100%;
     max-width: 400px;
   }
-  
+
   .user-area {
     order: 4;
     width: 100%;
     justify-content: center;
     padding-top: var(--spacing-md);
   }
-  
+
   .auth-buttons {
     width: 100%;
     justify-content: center;
   }
-  
+
   .auth-buttons .el-button {
     flex: 1;
     padding: 10px 20px;
@@ -482,16 +496,16 @@ const handleUserCommand = async (command) => {
     padding: var(--spacing-sm) 0;
     gap: var(--spacing-sm);
   }
-  
+
   .nav-item {
     padding: var(--spacing-xs) var(--spacing-sm);
     font-size: 14px;
   }
-  
+
   .nav-item .el-icon {
     font-size: 14px;
   }
-  
+
   .search-box {
     max-width: 100%;
   }
