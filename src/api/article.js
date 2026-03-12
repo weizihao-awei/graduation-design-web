@@ -61,6 +61,18 @@ export function deleteArticle(articleId) {
   })
 }
 
+// 文章操作（点赞/取消点赞/收藏/取消收藏）
+export function operateArticle(articleId, operationType) {
+  return request({
+    url: '/article/operate',
+    method: 'post',
+    data: {
+      articleId,
+      operationType
+    }
+  })
+}
+
 // 点赞文章
 export function likeArticle(articleId) {
   return request({

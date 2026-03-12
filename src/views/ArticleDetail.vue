@@ -1,14 +1,14 @@
 <template>
   <div class="article-detail-page">
     <Header />
-    
+
     <div class="container">
       <div class="article-container">
         <el-card v-if="article" class="article-card">
           <!-- 文章头部 -->
           <header class="article-header">
             <h1 class="article-title">{{ article.title }}</h1>
-            
+
             <div class="article-meta">
               <div class="author-info">
                 <el-avatar :size="32" :src="article.authorAvatar">
@@ -19,135 +19,101 @@
                   <span class="publish-time">{{ formatDate(article.publishTime) }}</span>
                 </div>
               </div>
-              
+
               <div class="article-stats">
                 <span class="stat-item">
-                  <el-icon><View /></el-icon>
+                  <el-icon>
+                    <View />
+                  </el-icon>
                   {{ article.viewCount }}
                 </span>
                 <span class="stat-item">
-                  <el-icon><Star /></el-icon>
+                  <el-icon>赞</el-icon>
                   {{ article.likeCount }}
                 </span>
                 <span class="stat-item">
-                  <el-icon><ChatDotRound /></el-icon>
+                  <el-icon>
+                    <ChatDotRound />
+                  </el-icon>
                   {{ article.commentCount }}
                 </span>
               </div>
             </div>
-            
+
             <div class="article-tags" v-if="article.tags && article.tags.length">
-              <el-tag
-                v-for="tag in article.tags"
-                :key="tag.id"
-                :color="tag.color"
-                size="small"
-                @click="handleTagClick(tag)"
-              >
+              <el-tag v-for="tag in article.tags" :key="tag.id" size="small" @click="handleTagClick(tag)">
                 {{ tag.name }}
               </el-tag>
             </div>
           </header>
-          
+
           <!-- 文章内容 -->
           <div class="article-content" v-html="article.htmlContent"></div>
-          
+
           <!-- 文章操作 -->
           <div class="article-actions">
-            <el-button 
-              type="primary" 
-              :icon="article.isLiked ? 'Star' : 'StarFilled'"
-              @click="handleLike"
-            >
+            <el-button type="primary" :icon="article.isLiked ? 'Star' : 'StarFilled'" @click="handleLike">
               {{ article.isLiked ? '取消点赞' : '点赞' }}
             </el-button>
-            <el-button 
-              type="success"
-              :icon="article.isCollected ? 'Folder' : 'FolderFilled'"
-              @click="handleCollect"
-            >
+            <el-button type="success" :icon="article.isCollected ? 'Folder' : 'FolderFilled'" @click="handleCollect">
               {{ article.isCollected ? '取消收藏' : '收藏' }}
             </el-button>
             <el-button @click="handleShare">
-              <el-icon><Share /></el-icon>
+              <el-icon>
+                <Share />
+              </el-icon>
               分享
             </el-button>
           </div>
-          
+
           <!-- 管理操作 -->
           <div v-if="showActions" class="admin-actions">
-            <el-button 
-              type="primary" 
-              @click="handleEdit"
-            >
+            <el-button type="primary" @click="handleEdit">
               编辑
             </el-button>
-            <el-button 
-              type="danger" 
-              @click="handleDelete"
-            >
+            <el-button type="danger" @click="handleDelete">
               删除
             </el-button>
           </div>
         </el-card>
-        
+
         <!-- 评论区 -->
         <el-card class="comments-card">
           <template #header>
             <span>评论 ({{ comments.length }})</span>
           </template>
-          
+
           <!-- 发表评论 -->
           <div class="comment-form" v-if="userStore.isLogin">
-            <el-input
-              v-model="commentContent"
-              type="textarea"
-              placeholder="发表你的评论..."
-              :rows="3"
-              maxlength="500"
-              show-word-limit
-            />
+            <el-input v-model="commentContent" type="textarea" placeholder="发表你的评论..." :rows="3" maxlength="500"
+              show-word-limit />
             <div class="comment-actions">
-              <el-button 
-                type="primary" 
-                @click="handleSubmitComment"
-                :loading="submittingComment"
-              >
+              <el-button type="primary" @click="handleSubmitComment" :loading="submittingComment">
                 发表评论
               </el-button>
             </div>
           </div>
-          
+
           <div v-else class="login-tip">
-            <el-alert
-              title="请登录后发表评论"
-              type="info"
-              :closable="false"
-              show-icon
-            >
+            <el-alert title="请登录后发表评论" type="info" :closable="false" show-icon>
               <template #default>
                 <router-link to="/login" class="login-link">立即登录</router-link>
               </template>
             </el-alert>
           </div>
-          
+
           <!-- 评论列表 -->
           <div class="comments-list" v-if="comments.length">
-            <CommentItem
-              v-for="comment in comments"
-              :key="comment.id"
-              :comment="comment"
-              @reply="handleReply"
-              @delete="handleDeleteComment"
-            />
+            <CommentItem v-for="comment in comments" :key="comment.id" :comment="comment" @reply="handleReply"
+              @delete="handleDeleteComment" />
           </div>
-          
+
           <!-- 空评论 -->
           <el-empty v-else description="暂无评论" />
         </el-card>
       </div>
     </div>
-    
+
     <Footer />
   </div>
 </template>
@@ -159,15 +125,12 @@ import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import CommentItem from '@/components/CommentItem.vue'
 import { useUserStore } from '@/store'
-import { 
+import {
   getArticleDetail,
-  likeArticle,
-  unlikeArticle,
-  collectArticle,
-  uncollectArticle,
+  operateArticle,
   deleteArticle
 } from '@/api/article'
-import { 
+import {
   getCommentList,
   createComment,
   deleteComment
@@ -191,8 +154,8 @@ const submittingComment = ref(false)
 
 // 计算属性
 const showActions = computed(() => {
-  return userStore.isLogin && 
-         (userStore.isAdmin || userStore.userInfo.id === article.value?.authorId)
+  return userStore.isLogin &&
+    (userStore.isAdmin || userStore.userInfo.id === article.value?.authorId)
 })
 
 // 获取文章详情
@@ -223,15 +186,16 @@ const handleLike = async () => {
     router.push('/login')
     return
   }
-  
+
   try {
+    const operationType = article.value.isLiked ? 'unlike' : 'like'
+    await operateArticle(articleId.value, operationType)
+
     if (article.value.isLiked) {
-      await unlikeArticle(articleId.value)
       article.value.likeCount--
       article.value.isLiked = false
       ElMessage.success('取消点赞')
     } else {
-      await likeArticle(articleId.value)
       article.value.likeCount++
       article.value.isLiked = true
       ElMessage.success('点赞成功')
@@ -249,14 +213,15 @@ const handleCollect = async () => {
     router.push('/login')
     return
   }
-  
+
   try {
+    const operationType = article.value.isCollected ? 'uncollect' : 'collect'
+    await operateArticle(articleId.value, operationType)
+
     if (article.value.isCollected) {
-      await uncollectArticle(articleId.value)
       article.value.isCollected = false
       ElMessage.success('取消收藏')
     } else {
-      await collectArticle(articleId.value)
       article.value.isCollected = true
       ElMessage.success('收藏成功')
     }
@@ -293,7 +258,7 @@ const handleDelete = async () => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    
+
     await deleteArticle(articleId.value)
     ElMessage.success('删除成功')
     router.push('/articles')
@@ -319,14 +284,14 @@ const handleSubmitComment = async () => {
     ElMessage.warning('请输入评论内容')
     return
   }
-  
+
   try {
     submittingComment.value = true
     await createComment({
       articleId: articleId.value,
       content: commentContent.value.trim()
     })
-    
+
     ElMessage.success('评论发表成功')
     commentContent.value = ''
     fetchComments() // 刷新评论列表
@@ -351,7 +316,7 @@ const handleDeleteComment = async (commentId) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    
+
     await deleteComment(commentId)
     ElMessage.success('删除成功')
     fetchComments() // 刷新评论列表
@@ -377,7 +342,7 @@ onMounted(() => {
     router.push('/articles')
     return
   }
-  
+
   initData()
 })
 </script>
@@ -798,34 +763,34 @@ onMounted(() => {
   .container {
     padding: var(--spacing-md);
   }
-  
+
   .article-title {
     font-size: 1.8rem;
   }
-  
+
   .article-meta {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-md);
   }
-  
+
   .article-actions {
     justify-content: center;
   }
-  
+
   .article-content {
     padding: var(--spacing-md);
     font-size: 15px;
   }
-  
+
   .article-content :deep(h1) {
     font-size: 1.6rem;
   }
-  
+
   .article-content :deep(h2) {
     font-size: 1.4rem;
   }
-  
+
   .article-content :deep(h3) {
     font-size: 1.2rem;
   }
@@ -835,15 +800,15 @@ onMounted(() => {
   .article-title {
     font-size: 1.5rem;
   }
-  
+
   .article-content {
     font-size: 14px;
   }
-  
+
   .article-content :deep(img) {
     margin: var(--spacing-md) 0;
   }
-  
+
   .article-content :deep(pre) {
     padding: var(--spacing-md);
     overflow-x: auto;

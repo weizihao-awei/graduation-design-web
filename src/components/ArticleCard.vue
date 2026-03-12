@@ -5,29 +5,24 @@
       <div v-if="article.coverImage" class="cover-image">
         <img :src="article.coverImage" :alt="article.title" @error="handleImageError">
       </div>
-      
+
       <div class="article-info">
         <!-- 标题 -->
         <h3 class="article-title">
           <router-link :to="`/article/${article.id}`">{{ article.title }}</router-link>
         </h3>
-        
+
         <!-- 摘要 -->
         <p class="article-summary">{{ article.summary }}</p>
-        
+
         <!-- 标签 -->
         <div v-if="article.tags && article.tags.length" class="article-tags">
-          <el-tag
-            v-for="tag in article.tags"
-            :key="tag.id"
-            :color="tag.color"
-            size="small"
-            @click="handleTagClick(tag)"
-          >
+          <el-tag v-for="tag in article.tags" :key="tag.id" :color="tag.color" size="small"
+            @click="handleTagClick(tag)">
             {{ tag.name }}
           </el-tag>
         </div>
-        
+
         <!-- 底部信息 -->
         <div class="article-meta">
           <div class="author-info">
@@ -36,45 +31,45 @@
             </el-avatar>
             <span class="author-name">{{ article.authorName }}</span>
           </div>
-          
+
           <div class="meta-info">
             <span class="category" v-if="article.categoryName">
-              <el-icon><Folder /></el-icon>
+              <el-icon>
+                <Folder />
+              </el-icon>
               {{ article.categoryName }}
             </span>
             <span class="publish-time">
-              <el-icon><Clock /></el-icon>
+              <el-icon>
+                <Clock />
+              </el-icon>
               {{ formatRelativeTime(article.publishTime) }}
             </span>
             <span class="view-count">
-              <el-icon><View /></el-icon>
+              <el-icon>
+                <View />
+              </el-icon>
               {{ article.viewCount }}
             </span>
+
             <span class="like-count">
-              <el-icon><Star /></el-icon>
-              {{ article.likeCount }}
+              <el-icon>
+                <Star />
+              </el-icon>
+              {{ article.collectionCount }}
             </span>
+
           </div>
         </div>
       </div>
     </div>
-    
+
     <!-- 操作按钮（管理员或作者可见） -->
     <div v-if="showActions" class="card-actions">
-      <el-button 
-        v-if="canEdit" 
-        type="primary" 
-        size="small" 
-        @click="handleEdit"
-      >
+      <el-button v-if="canEdit" type="primary" size="small" @click="handleEdit">
         编辑
       </el-button>
-      <el-button 
-        v-if="canDelete" 
-        type="danger" 
-        size="small" 
-        @click="handleDelete"
-      >
+      <el-button v-if="canDelete" type="danger" size="small" @click="handleDelete">
         删除
       </el-button>
     </div>
@@ -107,13 +102,13 @@ const userStore = useUserStore()
 
 // 计算属性
 const canEdit = computed(() => {
-  return userStore.isLogin && 
-         (userStore.isAdmin || userStore.userInfo.id === props.article.authorId)
+  return userStore.isLogin &&
+    (userStore.isAdmin || userStore.userInfo.id === props.article.authorId)
 })
 
 const canDelete = computed(() => {
-  return userStore.isLogin && 
-         (userStore.isAdmin || userStore.userInfo.id === props.article.authorId)
+  return userStore.isLogin &&
+    (userStore.isAdmin || userStore.userInfo.id === props.article.authorId)
 })
 
 // 方法
@@ -200,7 +195,7 @@ const handleDelete = async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(0deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0) 50%);
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 50%);
   opacity: 0;
   transition: var(--transition-fast);
 }
@@ -270,6 +265,7 @@ const handleDelete = async () => {
   cursor: pointer;
   font-weight: 500;
   transition: var(--transition-fast);
+  color: #2c3e50;
 }
 
 .article-tags .el-tag:hover {
@@ -345,22 +341,22 @@ const handleDelete = async () => {
     flex-direction: column;
     gap: var(--spacing-md);
   }
-  
+
   .cover-image {
     width: 100%;
     height: 200px;
   }
-  
+
   .article-meta {
     flex-direction: column;
     align-items: flex-start;
     gap: var(--spacing-sm);
   }
-  
+
   .meta-info {
     gap: var(--spacing-sm);
   }
-  
+
   .card-actions {
     justify-content: center;
   }
@@ -370,11 +366,11 @@ const handleDelete = async () => {
   .card-content {
     padding: var(--spacing-md);
   }
-  
+
   .article-title {
     font-size: 1.1rem;
   }
-  
+
   .article-summary {
     font-size: 13px;
   }

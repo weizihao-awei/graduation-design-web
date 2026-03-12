@@ -16,9 +16,7 @@
       <div class="content-grid">
         <div class="main-section">
           <div class="article-list" ref="articleListRef">
-            <ArticleCard v-for="article in articles" :key="article.id" :article="article"
-              :show-actions="userStore.isLogin && (userStore.isAdmin || userStore.userInfo.id === article.authorId)"
-              @delete="handleDeleteArticle" />
+            <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
           </div>
 
           <div class="load-more" ref="loadMoreRef">
@@ -78,10 +76,8 @@ import { useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
-// 导入用户状态管理
-import { useUserStore } from '@/store'
 // 导入 API 接口
-import { getLatestArticles, deleteArticle } from '@/api/article'
+import { getLatestArticles } from '@/api/article'
 import { getHotTags } from '@/api/tag'
 import { getCategoryList } from '@/api/category'
 // 导入 Element Plus 组件和工具
@@ -90,8 +86,6 @@ import { Clock, Loading } from '@element-plus/icons-vue'
 
 // 初始化路由
 const router = useRouter()
-// 获取用户状态管理实例
-const userStore = useUserStore()
 
 // 响应式数据定义
 const articles = ref([])           // 文章列表数据
@@ -185,20 +179,6 @@ const initIntersectionObserver = () => {
   // 开始观察加载更多按钮容器
   if (loadMoreRef.value) {
     observer.observe(loadMoreRef.value)
-  }
-}
-
-// 处理删除文章
-const handleDeleteArticle = async (articleId) => {
-  try {
-    // 调用删除文章 API
-    await deleteArticle(articleId)
-    ElMessage.success('删除成功')
-    // 重新加载文章列表
-    fetchArticles(true)
-  } catch (error) {
-    console.error('删除文章失败:', error)
-    ElMessage.error('删除文章失败')
   }
 }
 
