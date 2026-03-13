@@ -1,7 +1,7 @@
 <template>
   <div class="articles-page">
     <Header />
-    
+
     <div class="container">
       <div class="content-grid">
         <!-- 左侧主要内容 -->
@@ -13,44 +13,32 @@
                 <div class="filter-item">
                   <label>分类：</label>
                   <el-select v-model="filters.categoryId" placeholder="全部分类" clearable @change="handleFilterChange">
-                    <el-option
-                      v-for="category in categories"
-                      :key="category.id"
-                      :label="category.name"
-                      :value="category.id"
-                    />
+                    <el-option v-for="category in categories" :key="category.id" :label="category.name"
+                      :value="category.id" />
                   </el-select>
                 </div>
-                
+
                 <div class="filter-item">
                   <label>标签：</label>
                   <el-select v-model="filters.tagId" placeholder="全部标签" clearable @change="handleFilterChange">
-                    <el-option
-                      v-for="tag in tags"
-                      :key="tag.id"
-                      :label="tag.name"
-                      :value="tag.id"
-                    />
+                    <el-option v-for="tag in tags" :key="tag.id" :label="tag.name" :value="tag.id" />
                   </el-select>
                 </div>
-                
+
                 <div class="filter-item">
                   <label>排序：</label>
                   <el-select v-model="filters.orderBy" placeholder="默认排序" @change="handleFilterChange">
-                    <el-option label="推荐" value="recommend" />
-                    <el-option label="热门" value="hot" />
-                    <el-option label="最新" value="latest" />
+                    <el-option label="最新发布" value="CREATE_TIME_DESC" />
+                    <el-option label="最早发布" value="CREATE_TIME_ASC" />
+                    <el-option label="最新编辑" value="UPDATE_TIME_DESC" />
+                    <el-option label="最早编辑" value="UPDATE_TIME_ASC" />
                   </el-select>
                 </div>
               </div>
-              
+
               <div class="search-row">
-                <el-input
-                  v-model="filters.keyword"
-                  placeholder="搜索文章标题或内容..."
-                  clearable
-                  @keyup.enter="handleFilterChange"
-                >
+                <el-input v-model="filters.keyword" placeholder="搜索文章标题或内容..." clearable
+                  @keyup.enter="handleFilterChange">
                   <template #append>
                     <el-button :icon="Search" @click="handleFilterChange" />
                   </template>
@@ -58,59 +46,47 @@
               </div>
             </el-card>
           </div>
-          
+
           <!-- 文章列表 - 瀑布流 -->
           <div class="article-list" ref="articleListRef">
-            <ArticleCard 
-              v-for="article in articles" 
-              :key="article.id" 
-              :article="article" 
+            <ArticleCard v-for="article in articles" :key="article.id" :article="article"
               :show-actions="userStore.isLogin && (userStore.isAdmin || userStore.userInfo.id === article.authorId)"
-              @delete="handleDeleteArticle"
-            />
+              @delete="handleDeleteArticle" />
           </div>
-          
+
           <!-- 加载更多指示器 -->
           <div class="load-more" ref="loadMoreRef">
-            <el-button 
-              v-if="hasMore && !loading"
-              type="primary" 
-              @click="loadMore"
-            >
+            <el-button v-if="hasMore && !loading" type="primary" @click="loadMore">
               加载更多
             </el-button>
             <div v-else-if="loading" class="loading-text">
-              <el-icon class="is-loading"><Loading /></el-icon>
+              <el-icon class="is-loading">
+                <Loading />
+              </el-icon>
               加载中...
             </div>
             <div v-else-if="articles.length > 0" class="no-more-text">
               没有更多了
             </div>
           </div>
-          
+
           <!-- 空状态 -->
           <el-empty v-if="!loading && articles.length === 0" description="暂无文章" />
         </div>
-        
+
         <!-- 右侧侧边栏 -->
         <aside class="sidebar">
           <!-- 热门标签 -->
           <div class="widget tags-widget">
             <h3 class="widget-title">热门标签</h3>
             <div class="tags-cloud">
-              <el-tag
-                v-for="tag in hotTags"
-                :key="tag.id"
-                :color="tag.color"
-                size="small"
-                class="tag-item"
-                @click="handleTagClick(tag)"
-              >
+              <el-tag v-for="tag in hotTags" :key="tag.id" :color="tag.color" size="small" class="tag-item"
+                @click="handleTagClick(tag)">
                 {{ tag.name }}
               </el-tag>
             </div>
           </div>
-          
+
           <!-- 分类导航 -->
           <div class="widget categories-widget">
             <h3 class="widget-title">文章分类</h3>
@@ -126,7 +102,7 @@
         </aside>
       </div>
     </div>
-    
+
     <Footer />
   </div>
 </template>
@@ -139,10 +115,10 @@ import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
 import Pagination from '@/components/Pagination.vue'
 import { useUserStore } from '@/store'
-import { 
+import {
   queryArticles,
   getArticlesByTag,
-  deleteArticle 
+  deleteArticle
 } from '@/api/article'
 import { getTagList, getHotTags } from '@/api/tag'
 import { getCategoryList } from '@/api/category'
@@ -172,35 +148,35 @@ let observer = null
 const filters = reactive({
   categoryId: null,
   tagId: null,
-  orderBy: 'latest',
+  orderBy: 'CREATE_TIME_DESC',
   keyword: ''
 })
 
 // 获取文章列表
 const fetchArticles = async (reset = false) => {
   if (loading.value) return
-  
+
   try {
     loading.value = true
-    
+
     if (reset) {
       pageNum.value = 1
       articles.value = []
       hasMore.value = true
     }
-    
+
     let data = {
       pageNum: pageNum.value,
       pageSize: pageSize.value
     }
-    
+
     // 根据不同情况调用不同接口
     if (filters.tagId) {
       // 按标签筛选 - 使用通用查询接口
-      data.tagId = filters.tagId
+      data.tagIds = [filters.tagId]
       if (filters.orderBy) data.orderBy = filters.orderBy
       if (filters.keyword) data.keyword = filters.keyword
-      
+
       const res = await queryArticles(data)
       if (reset) {
         articles.value = res.data.list || []
@@ -213,7 +189,7 @@ const fetchArticles = async (reset = false) => {
       if (filters.categoryId) data.categoryId = filters.categoryId
       if (filters.keyword) data.keyword = filters.keyword
       if (filters.orderBy) data.orderBy = filters.orderBy
-      
+
       const res = await queryArticles(data)
       if (reset) {
         articles.value = res.data.list || []
@@ -242,7 +218,7 @@ const initIntersectionObserver = () => {
   if (observer) {
     observer.disconnect()
   }
-  
+
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -256,7 +232,7 @@ const initIntersectionObserver = () => {
       threshold: 0.1
     }
   )
-  
+
   if (loadMoreRef.value) {
     observer.observe(loadMoreRef.value)
   }
@@ -329,14 +305,14 @@ const initData = async () => {
     fetchTags(),
     fetchHotTags()
   ])
-  
+
   // 处理路由参数
   const { categoryId, tagId, keyword, orderBy } = route.query
   if (categoryId) filters.categoryId = parseInt(categoryId)
   if (tagId) filters.tagId = parseInt(tagId)
   if (keyword) filters.keyword = keyword
-  if (orderBy) filters.orderBy = orderBy
-  
+  if (orderBy) filters.orderBy = orderBy.toUpperCase()
+
   fetchArticles(true)
 }
 
@@ -346,7 +322,7 @@ watch(() => route.query, () => {
   if (categoryId) filters.categoryId = parseInt(categoryId)
   if (tagId) filters.tagId = parseInt(tagId)
   if (keyword) filters.keyword = keyword
-  if (orderBy) filters.orderBy = orderBy
+  if (orderBy) filters.orderBy = orderBy.toUpperCase()
   fetchArticles(true)
 }, { immediate: false })
 
@@ -651,17 +627,17 @@ onUnmounted(() => {
   .content-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .sidebar {
     position: static;
     order: 2;
   }
-  
+
   .filter-row {
     flex-direction: column;
     gap: var(--spacing-md);
   }
-  
+
   .filter-item {
     width: 100%;
   }
@@ -671,7 +647,7 @@ onUnmounted(() => {
   .container {
     padding: var(--spacing-md);
   }
-  
+
   .filter-row {
     margin-bottom: var(--spacing-md);
   }
