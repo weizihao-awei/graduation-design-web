@@ -102,7 +102,6 @@
               <el-tag
                 v-for="tag in hotTags"
                 :key="tag.id"
-                :color="tag.color"
                 size="small"
                 class="tag-item"
                 @click="handleTagClick(tag)"

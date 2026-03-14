@@ -1,57 +1,48 @@
 <template>
   <div class="tags-page">
     <Header />
-    
+
     <div class="container">
       <div class="page-header">
         <h1 class="page-title">标签云</h1>
         <p class="page-subtitle">浏览所有标签，发现感兴趣的内容</p>
       </div>
-      
+
       <div class="tags-content">
         <!-- 标签云 -->
         <div class="tags-cloud-section">
           <el-card class="cloud-card">
             <div class="tags-cloud">
-              <el-tag
-                v-for="tag in tags"
-                :key="tag.id"
-                :color="tag.color"
-                :size="getTagSize(tag.articleCount)"
-                class="tag-item"
-                @click="handleTagClick(tag)"
-              >
+              <el-tag v-for="tag in tags" :key="tag.id" :size="getTagSize(tag.articleCount)" class="tag-item"
+                @click="handleTagClick(tag)">
                 {{ tag.name }}
                 <span class="count">({{ tag.articleCount || 0 }})</span>
               </el-tag>
             </div>
           </el-card>
         </div>
-        
+
         <!-- 标签列表 -->
         <div class="tags-list-section">
           <el-card class="list-card">
             <template #header>
               <div class="card-header">
                 <span>标签列表</span>
-                <el-input
-                  v-model="searchKeyword"
-                  placeholder="搜索标签..."
-                  clearable
-                  style="width: 200px"
-                  @input="handleSearch"
-                >
+                <el-input v-model="searchKeyword" placeholder="搜索标签..." clearable style="width: 200px"
+                  @input="handleSearch">
                   <template #prefix>
-                    <el-icon><Search /></el-icon>
+                    <el-icon>
+                      <Search />
+                    </el-icon>
                   </template>
                 </el-input>
               </div>
             </template>
-            
+
             <el-table :data="filteredTags" style="width: 100%">
               <el-table-column prop="name" label="标签名称" min-width="120">
                 <template #default="{ row }">
-                  <el-tag :color="row.color" size="small">{{ row.name }}</el-tag>
+                  <el-tag size="small">{{ row.name }}</el-tag>
                 </template>
               </el-table-column>
               <el-table-column prop="articleCount" label="文章数量" width="100" align="center">
@@ -66,12 +57,7 @@
               </el-table-column>
               <el-table-column label="操作" width="120">
                 <template #default="{ row }">
-                  <el-button
-                    type="primary"
-                    size="small"
-                    link
-                    @click="handleTagClick(row)"
-                  >
+                  <el-button type="primary" size="small" link @click="handleTagClick(row)">
                     查看文章
                   </el-button>
                 </template>
@@ -81,7 +67,7 @@
         </div>
       </div>
     </div>
-    
+
     <Footer />
   </div>
 </template>
@@ -106,7 +92,7 @@ const filteredTags = computed(() => {
   if (!searchKeyword.value) {
     return tags.value
   }
-  return tags.value.filter(tag => 
+  return tags.value.filter(tag =>
     tag.name.toLowerCase().includes(searchKeyword.value.toLowerCase())
   )
 })
@@ -229,12 +215,12 @@ onMounted(() => {
   .page-title {
     font-size: 2rem;
   }
-  
+
   .tags-cloud {
     padding: 15px;
     gap: 10px;
   }
-  
+
   .card-header {
     flex-direction: column;
     gap: 15px;

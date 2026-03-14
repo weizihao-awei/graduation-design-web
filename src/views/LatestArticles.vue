@@ -41,7 +41,7 @@
           <div class="widget">
             <h3 class="widget-title">热门标签</h3>
             <div class="tags-cloud">
-              <el-tag v-for="tag in hotTags" :key="tag.id" :color="tag.color" size="small" class="tag-item"
+              <el-tag v-for="tag in hotTags" :key="tag.id" size="small" class="tag-item"
                 @click="handleTagClick(tag)">
                 {{ tag.name }}
               </el-tag>
