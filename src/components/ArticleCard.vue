@@ -17,8 +17,7 @@
 
         <!-- 标签 -->
         <div v-if="article.tags && article.tags.length" class="article-tags">
-          <el-tag v-for="tag in article.tags" :key="tag.id" size="small"
-            @click="handleTagClick(tag)">
+          <el-tag v-for="tag in article.tags" :key="tag.id" size="small" @click="handleTagClick(tag)">
             {{ tag.name }}
           </el-tag>
         </div>
@@ -63,16 +62,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 操作按钮（管理员或作者可见） -->
-    <div v-if="showActions" class="card-actions">
-      <el-button v-if="canEdit" type="primary" size="small" @click="handleEdit">
-        编辑
-      </el-button>
-      <el-button v-if="canDelete" type="danger" size="small" @click="handleDelete">
-        删除
-      </el-button>
-    </div>
   </div>
 </template>
 
@@ -80,7 +69,6 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store'
-import { ElMessageBox, ElMessage } from 'element-plus'
 import { Folder, Clock, View, Star } from '@element-plus/icons-vue'
 import { formatRelativeTime } from '@/utils'
 
@@ -88,28 +76,11 @@ const props = defineProps({
   article: {
     type: Object,
     required: true
-  },
-  showActions: {
-    type: Boolean,
-    default: false
   }
 })
 
-const emit = defineEmits(['delete'])
-
 const router = useRouter()
 const userStore = useUserStore()
-
-// 计算属性
-const canEdit = computed(() => {
-  return userStore.isLogin &&
-    (userStore.isAdmin || userStore.userInfo.id === props.article.authorId)
-})
-
-const canDelete = computed(() => {
-  return userStore.isLogin &&
-    (userStore.isAdmin || userStore.userInfo.id === props.article.authorId)
-})
 
 // 方法
 const handleImageError = (e) => {
@@ -121,23 +92,6 @@ const handleImageError = (e) => {
 
 const handleTagClick = (tag) => {
   router.push(`/tag/${tag.id}`)
-}
-
-const handleEdit = () => {
-  router.push(`/edit/${props.article.id}`)
-}
-
-const handleDelete = async () => {
-  try {
-    await ElMessageBox.confirm('确定要删除这篇文章吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-    emit('delete', props.article.id)
-  } catch {
-    // 取消删除
-  }
 }
 </script>
 
@@ -314,27 +268,6 @@ const handleDelete = async () => {
   font-weight: 500;
 }
 
-.card-actions {
-  padding: var(--spacing-md) var(--spacing-lg);
-  border-top: 1px solid var(--border-extra-light);
-  background: var(--bg-page);
-  display: flex;
-  justify-content: flex-end;
-  gap: var(--spacing-sm);
-}
-
-.card-actions .el-button {
-  padding: 8px 16px;
-  font-weight: 500;
-  border-radius: var(--border-radius-base);
-  transition: var(--transition-base);
-}
-
-.card-actions .el-button:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-light);
-}
-
 /* 响应式设计 */
 @media (max-width: 768px) {
   .card-content {
@@ -355,10 +288,6 @@ const handleDelete = async () => {
 
   .meta-info {
     gap: var(--spacing-sm);
-  }
-
-  .card-actions {
-    justify-content: center;
   }
 }
 

@@ -49,9 +49,7 @@
 
           <!-- 文章列表 - 瀑布流 -->
           <div class="article-list" ref="articleListRef">
-            <ArticleCard v-for="article in articles" :key="article.id" :article="article"
-              :show-actions="userStore.isLogin && (userStore.isAdmin || userStore.userInfo.id === article.authorId)"
-              @delete="handleDeleteArticle" />
+            <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
           </div>
 
           <!-- 加载更多指示器 -->
@@ -254,18 +252,6 @@ const handleCategoryClick = (category) => {
   filters.categoryId = category.id
   filters.tagId = null // 清除标签筛选
   fetchArticles(true)
-}
-
-// 处理删除文章
-const handleDeleteArticle = async (articleId) => {
-  try {
-    await deleteArticle(articleId)
-    ElMessage.success('删除成功')
-    fetchArticles(true)
-  } catch (error) {
-    console.error('删除文章失败:', error)
-    ElMessage.error('删除文章失败')
-  }
 }
 
 // 获取分类列表

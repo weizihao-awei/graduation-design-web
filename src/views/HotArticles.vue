@@ -1,65 +1,53 @@
 <template>
   <div class="hot-articles-page">
     <Header />
-    
+
     <div class="container">
       <div class="page-header">
         <h1 class="page-title">
-          <el-icon><TrendCharts /></el-icon>
+          <el-icon>
+            <TrendCharts />
+          </el-icon>
           热门文章
         </h1>
         <p class="page-description">浏览量最高的文章</p>
       </div>
-      
+
       <div class="content-grid">
         <div class="main-section">
           <div class="article-list" ref="articleListRef">
-            <ArticleCard 
-              v-for="article in articles" 
-              :key="article.id" 
-              :article="article" 
-              :show-actions="userStore.isLogin && (userStore.isAdmin || userStore.userInfo.id === article.authorId)"
-              @delete="handleDeleteArticle"
-            />
+            <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
           </div>
-          
+
           <div class="load-more" ref="loadMoreRef">
-            <el-button 
-              v-if="hasMore && !loading"
-              type="primary" 
-              @click="loadMore"
-            >
+            <el-button v-if="hasMore && !loading" type="primary" @click="loadMore">
               加载更多
             </el-button>
             <div v-else-if="loading" class="loading-text">
-              <el-icon class="is-loading"><Loading /></el-icon>
+              <el-icon class="is-loading">
+                <Loading />
+              </el-icon>
               加载中...
             </div>
             <div v-else-if="articles.length > 0" class="no-more-text">
               没有更多了
             </div>
           </div>
-          
+
           <el-empty v-if="!loading && articles.length === 0" description="暂无热门文章" />
         </div>
-        
+
         <aside class="sidebar">
           <div class="widget">
             <h3 class="widget-title">热门标签</h3>
             <div class="tags-cloud">
-              <el-tag
-                v-for="tag in hotTags"
-                :key="tag.id"
-                :color="tag.color"
-                size="small"
-                class="tag-item"
-                @click="handleTagClick(tag)"
-              >
+              <el-tag v-for="tag in hotTags" :key="tag.id" :color="tag.color" size="small" class="tag-item"
+                @click="handleTagClick(tag)">
                 {{ tag.name }}
               </el-tag>
             </div>
           </div>
-          
+
           <div class="widget">
             <h3 class="widget-title">文章分类</h3>
             <ul class="category-list">
@@ -74,7 +62,7 @@
         </aside>
       </div>
     </div>
-    
+
     <Footer />
   </div>
 </template>
@@ -109,21 +97,21 @@ let observer = null
 
 const fetchArticles = async (reset = false) => {
   if (loading.value) return
-  
+
   try {
     loading.value = true
-    
+
     if (reset) {
       pageNum.value = 1
       articles.value = []
       hasMore.value = true
     }
-    
+
     const res = await getHotArticles({
       pageNum: pageNum.value,
       pageSize: pageSize.value
     })
-    
+
     if (reset) {
       articles.value = res.data.list || []
     } else {
@@ -148,7 +136,7 @@ const initIntersectionObserver = () => {
   if (observer) {
     observer.disconnect()
   }
-  
+
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -162,20 +150,9 @@ const initIntersectionObserver = () => {
       threshold: 0.1
     }
   )
-  
+
   if (loadMoreRef.value) {
     observer.observe(loadMoreRef.value)
-  }
-}
-
-const handleDeleteArticle = async (articleId) => {
-  try {
-    await deleteArticle(articleId)
-    ElMessage.success('删除成功')
-    fetchArticles(true)
-  } catch (error) {
-    console.error('删除文章失败:', error)
-    ElMessage.error('删除文章失败')
   }
 }
 
@@ -261,7 +238,7 @@ onUnmounted(() => {
   right: -50%;
   width: 100%;
   height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
 }
 
 .page-title {
@@ -509,12 +486,12 @@ onUnmounted(() => {
   .content-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .sidebar {
     position: static;
     order: 2;
   }
-  
+
   .page-title {
     font-size: 1.5rem;
   }
