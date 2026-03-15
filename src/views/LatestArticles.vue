@@ -54,7 +54,7 @@
               <li v-for="category in categories" :key="category.id" class="category-item">
                 <a href="javascript:;" @click="handleCategoryClick(category)">
                   {{ category.name }}
-                  <span class="count">({{ category.articleCount || 0 }})</span>
+
                 </a>
               </li>
             </ul>
