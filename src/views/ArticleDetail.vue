@@ -235,6 +235,10 @@ const handleUpdateCommentCount = (count) => {
 
 const initData = async () => {
   await fetchArticleDetail()
+
+  if (commentSectionRef.value) {
+    commentSectionRef.value.fetchComments()
+  }
 }
 
 onMounted(() => {

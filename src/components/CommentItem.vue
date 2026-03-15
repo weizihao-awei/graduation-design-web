@@ -10,11 +10,11 @@
           <span class="time">{{ formatRelativeTime(comment.createTime) }}</span>
         </div>
 
-        <div class="comment-actions" v-if="shouldShowActions">
-          <el-button type="primary" size="small" link @click="$emit('reply', comment)">
+        <div class="comment-actions" v-if="shouldShowReply || shouldShowDelete">
+          <el-button v-if="shouldShowReply" type="primary" size="small" link @click="$emit('reply', comment)">
             回复
           </el-button>
-          <el-button type="danger" size="small" link @click="handleDelete">
+          <el-button v-if="shouldShowDelete" type="danger" size="small" link @click="handleDelete">
             删除
           </el-button>
         </div>
@@ -57,10 +57,14 @@ const emit = defineEmits(['reply', 'delete'])
 
 const userStore = useUserStore()
 
-// 计算是否显示操作按钮
-const shouldShowActions = computed(() => {
+const shouldShowReply = computed(() => {
+  return props.showActions && userStore.isLogin
+})
+
+const shouldShowDelete = computed(() => {
   return props.showActions &&
-    (userStore.isLogin )
+    userStore.isLogin &&
+    (userStore.isAdmin || userStore.userInfo.id === props.comment.userId)
 })
 
 // 处理删除评论
