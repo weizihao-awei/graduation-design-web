@@ -73,31 +73,7 @@
         </div>
 
         <!-- 右侧侧边栏 -->
-        <aside class="sidebar">
-          <!-- 热门标签 -->
-          <div class="widget tags-widget">
-            <h3 class="widget-title">热门标签</h3>
-            <div class="tags-cloud">
-              <el-tag v-for="tag in hotTags" :key="tag.id" :color="tag.color" size="small" class="tag-item"
-                @click="handleTagClick(tag)">
-                {{ tag.name }}
-              </el-tag>
-            </div>
-          </div>
-
-          <!-- 分类导航 -->
-          <div class="widget categories-widget">
-            <h3 class="widget-title">文章分类</h3>
-            <ul class="category-list">
-              <li v-for="category in categories" :key="category.id" class="category-item">
-                <a href="javascript:;" @click="handleCategoryClick(category)">
-                  {{ category.name }}
-                  <span class="count">({{ category.articleCount || 0 }})</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </aside>
+        <Sidebar />
       </div>
     </div>
 
@@ -111,15 +87,13 @@ import { useRoute, useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
+import Sidebar from '@/components/Sidebar.vue'
 import Pagination from '@/components/Pagination.vue'
 import { useUserStore } from '@/store'
 import {
   queryArticles,
-  getArticlesByTag,
-  deleteArticle
+  getArticlesByTag
 } from '@/api/article'
-import { getTagList, getHotTags } from '@/api/tag'
-import { getCategoryList } from '@/api/category'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Loading } from '@element-plus/icons-vue'
 
@@ -129,9 +103,6 @@ const userStore = useUserStore()
 
 // 数据
 const articles = ref([])
-const categories = ref([])
-const tags = ref([])
-const hotTags = ref([])
 const loading = ref(false)
 const hasMore = ref(true)
 const pageNum = ref(1)
@@ -241,57 +212,8 @@ const handleFilterChange = () => {
   fetchArticles(true)
 }
 
-// 处理标签点击
-const handleTagClick = (tag) => {
-  filters.tagId = tag.id
-  fetchArticles(true)
-}
-
-// 处理分类点击
-const handleCategoryClick = (category) => {
-  filters.categoryId = category.id
-  filters.tagId = null // 清除标签筛选
-  fetchArticles(true)
-}
-
-// 获取分类列表
-const fetchCategories = async () => {
-  try {
-    const res = await getCategoryList()
-    categories.value = res.data
-  } catch (error) {
-    console.error('获取分类列表失败:', error)
-  }
-}
-
-// 获取标签列表
-const fetchTags = async () => {
-  try {
-    const res = await getTagList()
-    tags.value = res.data
-  } catch (error) {
-    console.error('获取标签列表失败:', error)
-  }
-}
-
-// 获取热门标签
-const fetchHotTags = async () => {
-  try {
-    const res = await getHotTags(20)
-    hotTags.value = res.data
-  } catch (error) {
-    console.error('获取热门标签失败:', error)
-  }
-}
-
 // 初始化数据
 const initData = async () => {
-  await Promise.all([
-    fetchCategories(),
-    fetchTags(),
-    fetchHotTags()
-  ])
-
   // 处理路由参数
   const { categoryId, tagId, keyword, orderBy } = route.query
   if (categoryId) filters.categoryId = parseInt(categoryId)
