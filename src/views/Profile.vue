@@ -59,73 +59,91 @@
           <div v-show="activeTab === 'info'" class="content-section">
             <el-card>
               <template #header>
-                <span>个人信息</span>
+                <div class="section-header">
+                  <span>个人信息</span>
+                  <el-button v-if="!isEditing" type="primary" @click="handleEdit">
+                    <el-icon>
+                      <Edit />
+                    </el-icon>
+                    编辑
+                  </el-button>
+                </div>
               </template>
 
-              <el-form ref="infoFormRef" :model="infoForm" :rules="infoRules" label-width="80px" class="profile-form">
-                <el-form-item label="用户名">
-                  <el-input v-model="userStore.userInfo.username" disabled />
-                </el-form-item>
+              <div v-if="!isEditing" class="info-display">
+                <div class="info-item">
+                  <span class="info-label">用户名</span>
+                  <span class="info-value">{{ userStore.userInfo.username }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">昵称</span>
+                  <span class="info-value">{{ infoForm.nickname || '-' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">邮箱</span>
+                  <span class="info-value">{{ infoForm.email || '-' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">性别</span>
+                  <span class="info-value">{{ getGenderText(infoForm.gender) }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">个性签名</span>
+                  <span class="info-value">{{ infoForm.signature || '-' }}</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">简介</span>
+                  <span class="info-value">{{ infoForm.intro || '-' }}</span>
+                </div>
+              </div>
 
-                <el-form-item label="昵称" prop="nickname">
-                  <el-input v-model="infoForm.nickname" :disabled="!isEditing" />
-                </el-form-item>
-
-                <el-form-item label="邮箱" prop="email">
-                  <el-input v-model="infoForm.email" :disabled="!isEditing" />
-                </el-form-item>
-
-                <el-form-item label="性别" prop="gender">
-                  <el-radio-group v-model="infoForm.gender" :disabled="!isEditing">
-                    <el-radio :label="0">未知</el-radio>
-                    <el-radio :label="1">男</el-radio>
-                    <el-radio :label="2">女</el-radio>
-                  </el-radio-group>
-                </el-form-item>
-
-                <el-form-item label="简介" prop="intro">
-                  <el-input v-model="infoForm.intro" type="textarea" :rows="3" placeholder="请输入个人简介"
-                    :disabled="!isEditing" />
-                </el-form-item>
-
-                <el-form-item label="个性签名" prop="signature">
-                  <el-input v-model="infoForm.signature" type="textarea" :rows="2" placeholder="请输入个性签名"
-                    :disabled="!isEditing" />
-                </el-form-item>
-
+              <el-form v-else ref="infoFormRef" :model="infoForm" :rules="infoRules" label-width="80px"
+                class="profile-form">
                 <el-form-item label="头像" prop="avatar">
                   <div class="avatar-upload">
                     <el-avatar :size="80" :src="infoForm.avatar">
                       {{ infoForm.nickname?.charAt(0) }}
                     </el-avatar>
                     <div class="avatar-input-wrapper">
-                      <el-input v-model="infoForm.avatar" placeholder="请输入头像URL" class="avatar-input"
-                        :disabled="!isEditing" />
-                      <el-button type="primary" size="small" @click="handleUploadAvatar" :loading="uploading"
-                        :disabled="!isEditing">
+                      <el-input v-model="infoForm.avatar" placeholder="请输入头像URL" class="avatar-input" />
+                      <el-button type="primary" size="small" @click="handleUploadAvatar" :loading="uploading">
                         上传头像
                       </el-button>
                     </div>
                   </div>
                 </el-form-item>
 
+                <el-form-item label="昵称" prop="nickname">
+                  <el-input v-model="infoForm.nickname" />
+                </el-form-item>
+
+                <el-form-item label="邮箱" prop="email">
+                  <el-input v-model="infoForm.email" />
+                </el-form-item>
+
+                <el-form-item label="性别" prop="gender">
+                  <el-radio-group v-model="infoForm.gender">
+                    <el-radio :label="0">未知</el-radio>
+                    <el-radio :label="1">男</el-radio>
+                    <el-radio :label="2">女</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+
+                <el-form-item label="个性签名" prop="signature">
+                  <el-input v-model="infoForm.signature" type="textarea" :rows="2" placeholder="请输入个性签名" />
+                </el-form-item>
+
+                <el-form-item label="简介" prop="intro">
+                  <el-input v-model="infoForm.intro" type="textarea" :rows="3" placeholder="请输入个人简介" />
+                </el-form-item>
+
                 <el-form-item>
-                  <template v-if="!isEditing">
-                    <el-button type="primary" @click="handleEdit">
-                      <el-icon>
-                        <Edit />
-                      </el-icon>
-                      编辑
-                    </el-button>
-                  </template>
-                  <template v-else>
-                    <el-button type="primary" @click="handleUpdateInfo" :loading="updating">
-                      保存
-                    </el-button>
-                    <el-button @click="handleCancel">
-                      取消
-                    </el-button>
-                  </template>
+                  <el-button type="primary" @click="handleUpdateInfo" :loading="updating">
+                    保存
+                  </el-button>
+                  <el-button @click="handleCancel">
+                    取消
+                  </el-button>
                 </el-form-item>
               </el-form>
             </el-card>
@@ -395,6 +413,15 @@ const handleEdit = () => {
 const handleCancel = () => {
   isEditing.value = false
   Object.assign(infoForm, { ...originalInfoForm })
+}
+
+const getGenderText = (gender) => {
+  const genderMap = {
+    0: '未知',
+    1: '男',
+    2: '女'
+  }
+  return genderMap[gender] || '未知'
 }
 
 const handleUpdateInfo = async () => {
@@ -749,6 +776,85 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.info-display {
+  padding: 5px 0;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  padding: 18px 28px;
+  margin: 10px 0;
+  background: #ffffff;
+  border-radius: 16px;
+  border: 2px solid #f0f0f0;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+  position: relative;
+  overflow: hidden;
+}
+
+.info-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.info-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.15), 0 5px 10px rgba(102, 126, 234, 0.1);
+  border-color: #667eea;
+}
+
+.info-item:hover::before {
+  opacity: 1;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  width: 100px;
+  font-weight: 700;
+  color: #1a1a2e;
+  flex-shrink: 0;
+  font-size: 14px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  position: relative;
+  padding-left: 8px;
+}
+
+.info-label::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 16px;
+  background: linear-gradient(180deg, #e0e0e0 0%, #f5f5f5 100%);
+  border-radius: 1px;
+}
+
+.info-value {
+  flex: 1;
+  color: #2d2d2d;
+  line-height: 1.7;
+  font-size: 15px;
+  padding-left: 24px;
+  word-break: break-all;
+  font-weight: 400;
+  letter-spacing: 0.2px;
 }
 
 .profile-form {
