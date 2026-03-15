@@ -76,29 +76,7 @@
           <el-empty v-if="!loading && articles.length === 0" description="暂无符合条件的文章" />
         </div>
 
-        <aside class="sidebar">
-          <div class="widget">
-            <h3 class="widget-title">热门标签</h3>
-            <div class="tags-cloud">
-              <el-tag v-for="tag in hotTags" :key="tag.id" :color="tag.color" size="small" class="tag-item"
-                @click="handleTagClick(tag)">
-                {{ tag.name }}
-              </el-tag>
-            </div>
-          </div>
-
-          <div class="widget">
-            <h3 class="widget-title">文章分类</h3>
-            <ul class="category-list">
-              <li v-for="category in categories" :key="category.id" class="category-item">
-                <a href="javascript:;" @click="handleCategoryClick(category)">
-                  {{ category.name }}
-                  <span class="count">({{ category.articleCount || 0 }})</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-        </aside>
+        <Sidebar />
       </div>
     </div>
 
@@ -112,10 +90,9 @@ import { useRoute, useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
+import Sidebar from '@/components/Sidebar.vue'
 import { useUserStore } from '@/store'
-import { queryArticles, deleteArticle } from '@/api/article'
-import { getTagList, getHotTags } from '@/api/tag'
-import { getCategoryList } from '@/api/category'
+import { queryArticles } from '@/api/article'
 import { ElMessage } from 'element-plus'
 import { Search, Loading } from '@element-plus/icons-vue'
 
@@ -124,9 +101,6 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const articles = ref([])
-const categories = ref([])
-const tags = ref([])
-const hotTags = ref([])
 const loading = ref(false)
 const hasMore = ref(true)
 const pageNum = ref(1)
@@ -226,40 +200,7 @@ const handleCategoryClick = (category) => {
   fetchArticles(true)
 }
 
-const fetchCategories = async () => {
-  try {
-    const res = await getCategoryList()
-    categories.value = res.data
-  } catch (error) {
-    console.error('获取分类列表失败:', error)
-  }
-}
-
-const fetchTags = async () => {
-  try {
-    const res = await getTagList()
-    tags.value = res.data
-  } catch (error) {
-    console.error('获取标签列表失败:', error)
-  }
-}
-
-const fetchHotTags = async () => {
-  try {
-    const res = await getHotTags(20)
-    hotTags.value = res.data
-  } catch (error) {
-    console.error('获取热门标签失败:', error)
-  }
-}
-
 const initData = async () => {
-  await Promise.all([
-    fetchCategories(),
-    fetchTags(),
-    fetchHotTags()
-  ])
-
   const { categoryId, tagId, keyword, orderBy } = route.query
   if (categoryId) filters.categoryId = parseInt(categoryId)
   if (tagId) filters.tagId = parseInt(tagId)

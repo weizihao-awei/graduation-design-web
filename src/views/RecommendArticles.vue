@@ -54,7 +54,7 @@
               <li v-for="category in categories" :key="category.id" class="category-item">
                 <a href="javascript:;" @click="handleCategoryClick(category)">
                   {{ category.name }}
-                
+
                 </a>
               </li>
             </ul>
@@ -73,10 +73,9 @@ import { useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
+import Sidebar from '@/components/Sidebar.vue'
 import { useUserStore } from '@/store'
-import { getRecommendArticles, deleteArticle } from '@/api/article'
-import { getHotTags } from '@/api/tag'
-import { getCategoryList } from '@/api/category'
+import { getRecommendArticles } from '@/api/article'
 import { ElMessage } from 'element-plus'
 import { Star, Loading } from '@element-plus/icons-vue'
 
@@ -84,8 +83,6 @@ const router = useRouter()
 const userStore = useUserStore()
 
 const articles = ref([])
-const categories = ref([])
-const hotTags = ref([])
 const loading = ref(false)
 const hasMore = ref(true)
 const pageNum = ref(1)
@@ -156,43 +153,7 @@ const initIntersectionObserver = () => {
   }
 }
 
-const fetchCategories = async () => {
-  try {
-    const res = await getCategoryList()
-    categories.value = res.data
-  } catch (error) {
-    console.error('获取分类列表失败:', error)
-  }
-}
-
-const fetchHotTags = async () => {
-  try {
-    const res = await getHotTags(20)
-    hotTags.value = res.data
-  } catch (error) {
-    console.error('获取热门标签失败:', error)
-  }
-}
-
-const handleTagClick = (tag) => {
-  router.push({
-    path: '/articles',
-    query: { tagId: tag.id }
-  })
-}
-
-const handleCategoryClick = (category) => {
-  router.push({
-    path: '/articles',
-    query: { categoryId: category.id }
-  })
-}
-
 const initData = async () => {
-  await Promise.all([
-    fetchCategories(),
-    fetchHotTags()
-  ])
   fetchArticles(true)
 }
 

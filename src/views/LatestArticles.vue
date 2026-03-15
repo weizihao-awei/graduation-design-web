@@ -70,17 +70,12 @@
 <script setup>
 // 导入 Vue 组合式 API
 import { ref, onMounted, onUnmounted } from 'vue'
-// 导入 Vue Router 用于页面跳转
 import { useRouter } from 'vue-router'
-// 导入页面组件
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
-// 导入 API 接口
+import Sidebar from '@/components/Sidebar.vue'
 import { getLatestArticles } from '@/api/article'
-import { getHotTags } from '@/api/tag'
-import { getCategoryList } from '@/api/category'
-// 导入 Element Plus 组件和工具
 import { ElMessage } from 'element-plus'
 import { Clock, Loading } from '@element-plus/icons-vue'
 
@@ -88,13 +83,11 @@ import { Clock, Loading } from '@element-plus/icons-vue'
 const router = useRouter()
 
 // 响应式数据定义
-const articles = ref([])           // 文章列表数据
-const categories = ref([])          // 文章分类列表
-const hotTags = ref([])            // 热门标签列表
-const loading = ref(false)         // 加载状态标识
-const hasMore = ref(true)          // 是否还有更多数据
-const pageNum = ref(1)             // 当前页码
-const pageSize = ref(10)           // 每页显示数量
+const articles = ref([])
+const loading = ref(false)
+const hasMore = ref(true)
+const pageNum = ref(1)
+const pageSize = ref(10)
 
 // DOM 元素引用
 const articleListRef = ref(null)   // 文章列表容器引用
@@ -182,53 +175,8 @@ const initIntersectionObserver = () => {
   }
 }
 
-// 获取分类列表数据
-const fetchCategories = async () => {
-  try {
-    const res = await getCategoryList()
-    categories.value = res.data
-  } catch (error) {
-    console.error('获取分类列表失败:', error)
-  }
-}
-
-// 获取热门标签数据
-const fetchHotTags = async () => {
-  try {
-    // 获取前20个热门标签
-    const res = await getHotTags(20)
-    hotTags.value = res.data
-  } catch (error) {
-    console.error('获取热门标签失败:', error)
-  }
-}
-
-// 处理标签点击事件
-const handleTagClick = (tag) => {
-  // 跳转到文章列表页并携带标签ID参数
-  router.push({
-    path: '/articles',
-    query: { tagId: tag.id }
-  })
-}
-
-// 处理分类点击事件
-const handleCategoryClick = (category) => {
-  // 跳转到文章列表页并携带分类ID参数
-  router.push({
-    path: '/articles',
-    query: { categoryId: category.id }
-  })
-}
-
 // 初始化页面数据
 const initData = async () => {
-  // 并发请求分类和标签数据
-  await Promise.all([
-    fetchCategories(),
-    fetchHotTags()
-  ])
-  // 获取文章列表
   fetchArticles(true)
 }
 
