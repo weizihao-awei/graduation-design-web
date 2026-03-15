@@ -20,26 +20,7 @@
                 </div>
               </div>
 
-              <div class="article-stats">
-                <span class="stat-item">
-                  <el-icon>
-                    <View />
-                  </el-icon>
-                  {{ article.viewCount }}
-                </span>
-                <span class="stat-item">
-                  <el-icon>
-                    <Star />
-                  </el-icon>
-                  {{ article.collectionCount }}
-                </span>
-                <span class="stat-item">
-                  <el-icon>
-                    <ChatDotRound />
-                  </el-icon>
-                  {{ article.commentCount }}
-                </span>
-              </div>
+            
             </div>
 
             <div class="article-tags" v-if="article.tags && article.tags.length">
@@ -259,7 +240,7 @@ onMounted(() => {
 }
 
 .container {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: var(--spacing-lg);
 }
