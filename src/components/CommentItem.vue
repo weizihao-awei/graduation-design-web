@@ -9,27 +9,17 @@
           <span class="username">{{ comment.username }}</span>
           <span class="time">{{ formatRelativeTime(comment.createTime) }}</span>
         </div>
-        
-        <div class="comment-actions" v-if="showActions">
-          <el-button
-            type="primary"
-            size="small"
-            link
-            @click="$emit('reply', comment)"
-          >
+
+        <div class="comment-actions" v-if="shouldShowActions">
+          <el-button type="primary" size="small" link @click="$emit('reply', comment)">
             回复
           </el-button>
-          <el-button
-            type="danger"
-            size="small"
-            link
-            @click="handleDelete"
-          >
+          <el-button type="danger" size="small" link @click="handleDelete">
             删除
           </el-button>
         </div>
       </div>
-      
+
       <div class="comment-body">
         <div v-if="comment.replyToUsername" class="reply-to">
           回复 @{{ comment.replyToUsername }}
@@ -37,17 +27,11 @@
         <div class="comment-text">{{ comment.content }}</div>
       </div>
     </div>
-    
+
     <!-- 子评论 -->
     <div v-if="comment.children && comment.children.length" class="comment-children">
-      <CommentItem
-        v-for="child in comment.children"
-        :key="child.id"
-        :comment="child"
-        :show-actions="showActions"
-        @reply="$emit('reply', $event)"
-        @delete="$emit('delete', $event)"
-      />
+      <CommentItem v-for="child in comment.children" :key="child.id" :comment="child" :show-actions="showActions"
+        @reply="$emit('reply', $event)" @delete="$emit('delete', $event)" />
     </div>
   </div>
 </template>
@@ -74,10 +58,10 @@ const emit = defineEmits(['reply', 'delete'])
 const userStore = useUserStore()
 
 // 计算是否显示操作按钮
-const showActions = computed(() => {
-  return props.showActions && 
-         (userStore.isLogin && 
-          (userStore.isAdmin || userStore.userInfo.id === props.comment.userId))
+const shouldShowActions = computed(() => {
+  return props.showActions &&
+    (userStore.isLogin &&
+      (userStore.isAdmin || userStore.userInfo.id === props.comment.userId))
 })
 
 // 处理删除评论
@@ -88,7 +72,7 @@ const handleDelete = async () => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    
+
     emit('delete', props.comment.id)
   } catch (error) {
     if (error !== 'cancel') {
@@ -174,17 +158,17 @@ const handleDelete = async () => {
     flex-wrap: wrap;
     gap: 8px;
   }
-  
+
   .comment-actions {
     width: 100%;
     margin-top: 5px;
   }
-  
+
   .comment-body,
   .comment-children {
     margin-left: 0;
   }
-  
+
   .comment-children {
     padding-left: 10px;
   }

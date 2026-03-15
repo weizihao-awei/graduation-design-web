@@ -87,6 +87,10 @@
 
           <!-- 发表评论 -->
           <div class="comment-form" v-if="userStore.isLogin">
+            <div v-if="replyingTo" class="replying-tip">
+              <span>正在回复评论</span>
+              <el-button type="text" @click="handleCancelReply">取消</el-button>
+            </div>
             <el-input v-model="commentContent" type="textarea" placeholder="发表你的评论..." :rows="3" maxlength="500"
               show-word-limit />
             <div class="comment-actions">
@@ -106,8 +110,8 @@
 
           <!-- 评论列表 -->
           <div class="comments-list" v-if="comments.length">
-            <CommentItem v-for="comment in comments" :key="comment.id" :comment="comment" @reply="handleReply"
-              @delete="handleDeleteComment" />
+            <CommentItem v-for="comment in comments" :key="comment.id" :comment="comment"
+              :show-actions="userStore.isLogin" @reply="handleReply" @delete="handleDeleteComment" />
           </div>
 
           <!-- 空评论 -->
@@ -153,6 +157,7 @@ const article = ref(null)
 const comments = ref([])
 const commentContent = ref('')
 const submittingComment = ref(false)
+const replyingTo = ref(null)
 
 // 计算属性
 const showActions = computed(() => {
@@ -163,7 +168,7 @@ const showActions = computed(() => {
 // 获取文章详情
 const fetchArticleDetail = async () => {
   try {
-    const res = await getArticleDetail(articleId.value)
+    const res = await getArticleDetail(String(articleId.value))
     article.value = res.data
   } catch (error) {
     console.error('获取文章详情失败:', error)
@@ -174,7 +179,7 @@ const fetchArticleDetail = async () => {
 // 获取评论列表
 const fetchComments = async () => {
   try {
-    const res = await getCommentList(articleId.value)
+    const res = await getCommentList(String(articleId.value))
     comments.value = res.data
   } catch (error) {
     console.error('获取评论列表失败:', error)
@@ -191,7 +196,7 @@ const handleLike = async () => {
 
   try {
     const operationType = article.value.isLiked ? 'unlike' : 'like'
-    await operateArticle(articleId.value, operationType)
+    await operateArticle(String(articleId.value), operationType)
 
     if (article.value.isLiked) {
       article.value.likeCount--
@@ -218,7 +223,7 @@ const handleCollect = async () => {
 
   try {
     const operationType = article.value.isCollected ? 'uncollect' : 'collect'
-    await operateArticle(articleId.value, operationType)
+    await operateArticle(String(articleId.value), operationType)
 
     if (article.value.isCollected) {
       article.value.isCollected = false
@@ -261,7 +266,7 @@ const handleDelete = async () => {
       type: 'warning'
     })
 
-    await deleteArticle(articleId.value)
+    await deleteArticle(String(articleId.value))
     ElMessage.success('删除成功')
     router.push('/articles')
   } catch (error) {
@@ -290,13 +295,15 @@ const handleSubmitComment = async () => {
   try {
     submittingComment.value = true
     await createComment({
-      articleId: articleId.value,
+      articleId: String(articleId.value),
+      parentId: replyingTo.value ? String(replyingTo.value) : null,
       content: commentContent.value.trim()
     })
 
     ElMessage.success('评论发表成功')
     commentContent.value = ''
-    fetchComments() // 刷新评论列表
+    replyingTo.value = null
+    fetchComments()
   } catch (error) {
     console.error('发表评论失败:', error)
     ElMessage.error('发表评论失败')
@@ -307,7 +314,13 @@ const handleSubmitComment = async () => {
 
 // 处理回复评论
 const handleReply = (parentComment) => {
+  replyingTo.value = parentComment.id
   commentContent.value = `@${parentComment.username} `
+}
+
+const handleCancelReply = () => {
+  replyingTo.value = null
+  commentContent.value = ''
 }
 
 // 处理删除评论
@@ -319,9 +332,9 @@ const handleDeleteComment = async (commentId) => {
       type: 'warning'
     })
 
-    await deleteComment(commentId)
+    await deleteComment(String(commentId))
     ElMessage.success('删除成功')
-    fetchComments() // 刷新评论列表
+    fetchComments()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除评论失败:', error)
@@ -731,6 +744,23 @@ onMounted(() => {
   padding: var(--spacing-lg);
   background: var(--bg-page);
   border-radius: var(--border-radius-lg);
+}
+
+.replying-tip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--primary-light);
+  border-radius: var(--border-radius-base);
+  margin-bottom: var(--spacing-md);
+  color: var(--primary-color);
+  font-weight: 500;
+}
+
+.replying-tip .el-button {
+  padding: 0;
+  color: var(--primary-color);
 }
 
 .comment-actions {
