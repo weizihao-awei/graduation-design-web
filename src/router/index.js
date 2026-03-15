@@ -63,22 +63,6 @@ const routes = [
     meta: { title: '文章详情' }
   },
   {
-    path: '/tags',
-    name: 'Tags',
-    component: () => import('@/views/Tags.vue'),
-    meta: { title: '标签' }
-  },
-  {
-    path: '/tag/:id',
-    name: 'TagArticles',
-    redirect: to => {
-      return {
-        path: '/articles',
-        query: { tagId: to.params.id }
-      }
-    }
-  },
-  {
     path: '/write',
     name: 'Write',
     component: () => import('@/views/Write.vue'),

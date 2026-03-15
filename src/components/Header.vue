@@ -22,8 +22,6 @@
           <div class="nav-divider"></div>
           <router-link to="/articles" class="nav-item" active-class="active">全部文章</router-link>
           <div class="nav-divider"></div>
-          <router-link to="/tags" class="nav-item nav-tag" style="color: #000 !important;">标签</router-link>
-          <div class="nav-divider"></div>
           <router-link to="/write" class="nav-item nav-write" active-class="active">写文章</router-link>
         </nav>
 
@@ -250,51 +248,6 @@ const handleUserCommand = async (command) => {
 
 .nav-item:hover .el-icon {
   transform: scale(1.1);
-}
-
-.nav-item.nav-tag {
-  font-weight: 400;
-  color: #000 !important;
-}
-
-.nav-item.nav-tag:hover {
-  color: #000 !important;
-  transform: translateY(-1px);
-}
-
-.nav-item.nav-tag.active {
-  color: #000 !important;
-  transform: translateY(-1px);
-}
-
-.nav-menu .nav-item.nav-tag.active {
-  color: #000 !important;
-}
-
-:deep(.nav-item.nav-tag) {
-  color: #000 !important;
-}
-
-:deep(.nav-item.nav-tag:hover) {
-  color: #000 !important;
-}
-
-:deep(.nav-item.nav-tag.active) {
-  color: #000 !important;
-}
-
-:deep(.nav-menu .nav-item.nav-tag.active) {
-  color: #000 !important;
-}
-
-.nav-item.nav-tag::before {
-  background: #000;
-  opacity: 0.3;
-}
-
-.nav-item.nav-tag:hover::before,
-.nav-item.nav-tag.active::before {
-  opacity: 1;
 }
 
 .nav-item.nav-write {
