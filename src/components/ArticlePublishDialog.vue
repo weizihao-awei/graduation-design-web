@@ -67,7 +67,7 @@
             :label="tag.name"
             :value="tag.id"
           >
-            <el-tag size="small">{{ tag.name }}</el-tag>
+            <el-tag :color="tag.color" size="small">{{ tag.name }}</el-tag>
           </el-option>
         </el-select>
       </el-form-item>

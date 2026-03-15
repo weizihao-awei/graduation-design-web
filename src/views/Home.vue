@@ -149,6 +149,7 @@
               <el-tag
                 v-for="tag in hotTags"
                 :key="tag.id"
+                :color="tag.color"
                 size="large"
                 class="tag-item"
                 @click="$router.push(`/tag/${tag.id}`)"
