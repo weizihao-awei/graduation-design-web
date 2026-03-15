@@ -95,11 +95,16 @@ const handleSearch = () => {
 }
 
 const handleUserCommand = async (command) => {
+  console.log('Dropdown command:', command)
+  console.log('Is logged in:', userStore.isLogin)
+  console.log('User info:', userStore.userInfo)
+  
   switch (command) {
     case 'write':
       router.push('/write')
       break
     case 'profile':
+      console.log('Navigating to profile')
       router.push('/profile')
       break
     case 'my-articles':

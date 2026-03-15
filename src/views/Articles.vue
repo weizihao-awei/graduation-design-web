@@ -115,7 +115,6 @@ import Pagination from '@/components/Pagination.vue'
 import { useUserStore } from '@/store'
 import {
   queryArticles,
-  getArticlesByTag,
   deleteArticle
 } from '@/api/article'
 import { getTagList, getHotTags } from '@/api/tag'

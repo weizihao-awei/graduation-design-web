@@ -4,7 +4,6 @@
 
     <div class="container">
       <div class="profile-container">
-        <!-- 左侧导航 -->
         <div class="profile-sidebar">
           <el-card class="user-card">
             <div class="user-info">
@@ -29,24 +28,34 @@
               </el-icon>
               <span>修改密码</span>
             </el-menu-item>
-            <el-menu-item index="articles">
+            <el-menu-item index="published">
               <el-icon>
                 <Document />
               </el-icon>
               <span>我的文章</span>
             </el-menu-item>
-            <el-menu-item index="collects">
+            <el-menu-item index="collection">
               <el-icon>
                 <Star />
               </el-icon>
               <span>我的收藏</span>
             </el-menu-item>
+            <el-menu-item index="praise">
+              <el-icon>
+                <StarFilled />
+              </el-icon>
+              <span>我的点赞</span>
+            </el-menu-item>
+            <el-menu-item index="read">
+              <el-icon>
+                <View />
+              </el-icon>
+              <span>浏览记录</span>
+            </el-menu-item>
           </el-menu>
         </div>
 
-        <!-- 右侧内容 -->
         <div class="profile-content">
-          <!-- 个人信息 -->
           <div v-show="activeTab === 'info'" class="content-section">
             <el-card>
               <template #header>
@@ -66,12 +75,33 @@
                   <el-input v-model="infoForm.email" />
                 </el-form-item>
 
+                <el-form-item label="性别" prop="gender">
+                  <el-radio-group v-model="infoForm.gender">
+                    <el-radio :label="0">未知</el-radio>
+                    <el-radio :label="1">男</el-radio>
+                    <el-radio :label="2">女</el-radio>
+                  </el-radio-group>
+                </el-form-item>
+
+                <el-form-item label="简介" prop="intro">
+                  <el-input v-model="infoForm.intro" type="textarea" :rows="3" placeholder="请输入个人简介" />
+                </el-form-item>
+
+                <el-form-item label="个性签名" prop="signature">
+                  <el-input v-model="infoForm.signature" type="textarea" :rows="2" placeholder="请输入个性签名" />
+                </el-form-item>
+
                 <el-form-item label="头像" prop="avatar">
                   <div class="avatar-upload">
                     <el-avatar :size="80" :src="infoForm.avatar">
                       {{ infoForm.nickname?.charAt(0) }}
                     </el-avatar>
-                    <el-input v-model="infoForm.avatar" placeholder="请输入头像URL" class="avatar-input" />
+                    <div class="avatar-input-wrapper">
+                      <el-input v-model="infoForm.avatar" placeholder="请输入头像URL" class="avatar-input" />
+                      <el-button type="primary" size="small" @click="handleUploadAvatar" :loading="uploading">
+                        上传头像
+                      </el-button>
+                    </div>
                   </div>
                 </el-form-item>
 
@@ -84,7 +114,6 @@
             </el-card>
           </div>
 
-          <!-- 修改密码 -->
           <div v-show="activeTab === 'password'" class="content-section">
             <el-card>
               <template #header>
@@ -114,8 +143,7 @@
             </el-card>
           </div>
 
-          <!-- 我的文章 -->
-          <div v-show="activeTab === 'articles'" class="content-section">
+          <div v-show="activeTab === 'published'" class="content-section">
             <el-card>
               <template #header>
                 <div class="section-header">
@@ -126,42 +154,85 @@
                 </div>
               </template>
 
-              <div class="article-list">
-                <ArticleCard v-for="article in myArticles" :key="article.id" :article="article" />
+              <div class="article-list" v-infinite-scroll="loadMoreArticles"
+                :infinite-scroll-disabled="!hasMoreArticles || loadingArticles">
+                <ArticleCard v-for="article in publishedArticles" :key="article.id" :article="article" />
               </div>
 
-              <!-- 加载更多 -->
-              <div class="load-more" v-if="hasMoreArticles">
-                <el-button type="primary" :loading="loadingArticles" @click="loadMoreArticles">
-                  {{ loadingArticles ? '加载中...' : '加载更多' }}
-                </el-button>
+              <div class="loading-more" v-if="loadingArticles">
+                <el-icon class="is-loading">
+                  <Loading />
+                </el-icon>
+                <span>加载中...</span>
               </div>
 
-              <!-- 空状态 -->
-              <el-empty v-if="!loadingArticles && myArticles.length === 0" description="暂无文章" />
+              <el-empty v-if="!loadingArticles && publishedArticles.length === 0" description="暂无文章" />
             </el-card>
           </div>
 
-          <!-- 我的收藏 -->
-          <div v-show="activeTab === 'collects'" class="content-section">
+          <div v-show="activeTab === 'collection'" class="content-section">
             <el-card>
               <template #header>
                 <span>我的收藏</span>
               </template>
 
-              <div class="article-list">
-                <ArticleCard v-for="article in myCollects" :key="article.id" :article="article" />
+              <div class="article-list" v-infinite-scroll="loadMoreCollections"
+                :infinite-scroll-disabled="!hasMoreCollections || loadingCollections">
+                <ArticleCard v-for="article in collectionArticles" :key="article.id" :article="article" />
               </div>
 
-              <!-- 加载更多 -->
-              <div class="load-more" v-if="hasMoreCollects">
-                <el-button type="primary" :loading="loadingCollects" @click="loadMoreCollects">
-                  {{ loadingCollects ? '加载中...' : '加载更多' }}
-                </el-button>
+              <div class="loading-more" v-if="loadingCollections">
+                <el-icon class="is-loading">
+                  <Loading />
+                </el-icon>
+                <span>加载中...</span>
               </div>
 
-              <!-- 空状态 -->
-              <el-empty v-if="!loadingCollects && myCollects.length === 0" description="暂无收藏" />
+              <el-empty v-if="!loadingCollections && collectionArticles.length === 0" description="暂无收藏" />
+            </el-card>
+          </div>
+
+          <div v-show="activeTab === 'praise'" class="content-section">
+            <el-card>
+              <template #header>
+                <span>我的点赞</span>
+              </template>
+
+              <div class="article-list" v-infinite-scroll="loadMorePraises"
+                :infinite-scroll-disabled="!hasMorePraises || loadingPraises">
+                <ArticleCard v-for="article in praiseArticles" :key="article.id" :article="article" />
+              </div>
+
+              <div class="loading-more" v-if="loadingPraises">
+                <el-icon class="is-loading">
+                  <Loading />
+                </el-icon>
+                <span>加载中...</span>
+              </div>
+
+              <el-empty v-if="!loadingPraises && praiseArticles.length === 0" description="暂无点赞" />
+            </el-card>
+          </div>
+
+          <div v-show="activeTab === 'read'" class="content-section">
+            <el-card>
+              <template #header>
+                <span>浏览记录</span>
+              </template>
+
+              <div class="article-list" v-infinite-scroll="loadMoreReads"
+                :infinite-scroll-disabled="!hasMoreReads || loadingReads">
+                <ArticleCard v-for="article in readArticles" :key="article.id" :article="article" />
+              </div>
+
+              <div class="loading-more" v-if="loadingReads">
+                <el-icon class="is-loading">
+                  <Loading />
+                </el-icon>
+                <span>加载中...</span>
+              </div>
+
+              <el-empty v-if="!loadingReads && readArticles.length === 0" description="暂无浏览记录" />
             </el-card>
           </div>
         </div>
@@ -181,55 +252,63 @@ import ArticleCard from '@/components/ArticleCard.vue'
 import { useUserStore } from '@/store'
 import {
   updateUserInfo,
-  updatePassword,
-  getMyArticles,
-  deleteArticle
-} from '@/api/article'
-import { getMyCollects } from '@/api/article'
+  updatePassword
+} from '@/api/user'
+import {
+  getUserCollections,
+  getUserPraises,
+  getUserReads,
+  getUserPublished
+} from '@/api/user'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Document, Star } from '@element-plus/icons-vue'
+import { User, Lock, Document, Star, StarFilled, View, Loading } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
-// 当前激活的标签
 const activeTab = ref('info')
-
-// 表单引用
 const infoFormRef = ref()
 const passwordFormRef = ref()
 
-// 状态
 const updating = ref(false)
 const updatingPassword = ref(false)
-const loadingArticles = ref(false)
-const loadingCollects = ref(false)
-const hasMoreArticles = ref(true)
-const hasMoreCollects = ref(true)
-const articlesPageNum = ref(1)
-const collectsPageNum = ref(1)
+const uploading = ref(false)
 
-// 个人信息表单
+const loadingArticles = ref(false)
+const loadingCollections = ref(false)
+const loadingPraises = ref(false)
+const loadingReads = ref(false)
+
+const hasMoreArticles = ref(true)
+const hasMoreCollections = ref(true)
+const hasMorePraises = ref(true)
+const hasMoreReads = ref(true)
+
+const articlesPageNum = ref(1)
+const collectionsPageNum = ref(1)
+const praisesPageNum = ref(1)
+const readsPageNum = ref(1)
+
 const infoForm = reactive({
   nickname: '',
   email: '',
-  avatar: ''
+  avatar: '',
+  gender: 0,
+  intro: '',
+  signature: ''
 })
 
-// 密码表单
 const passwordForm = reactive({
   oldPassword: '',
   newPassword: '',
   confirmPassword: ''
 })
 
-// 我的文章
-const myArticles = ref([])
+const publishedArticles = ref([])
+const collectionArticles = ref([])
+const praiseArticles = ref([])
+const readArticles = ref([])
 
-// 我的收藏
-const myCollects = ref([])
-
-// 表单验证规则
 const infoRules = {
   nickname: [
     { required: true, message: '请输入昵称', trigger: 'blur' },
@@ -263,19 +342,20 @@ const passwordRules = {
   ]
 }
 
-// 处理菜单选择
 const handleMenuSelect = (index) => {
   activeTab.value = index
 
-  // 根据选择的菜单加载数据
-  if (index === 'articles' && myArticles.value.length === 0) {
-    fetchMyArticles(true)
-  } else if (index === 'collects' && myCollects.value.length === 0) {
-    fetchMyCollects(true)
+  if (index === 'published' && publishedArticles.value.length === 0) {
+    fetchPublishedArticles(true)
+  } else if (index === 'collection' && collectionArticles.value.length === 0) {
+    fetchCollectionArticles(true)
+  } else if (index === 'praise' && praiseArticles.value.length === 0) {
+    fetchPraiseArticles(true)
+  } else if (index === 'read' && readArticles.value.length === 0) {
+    fetchReadArticles(true)
   }
 }
 
-// 更新个人信息
 const handleUpdateInfo = async () => {
   if (!infoFormRef.value) return
 
@@ -285,7 +365,6 @@ const handleUpdateInfo = async () => {
 
     await updateUserInfo(infoForm)
 
-    // 更新store中的用户信息
     userStore.setUserInfo({
       ...userStore.userInfo,
       ...infoForm
@@ -300,7 +379,6 @@ const handleUpdateInfo = async () => {
   }
 }
 
-// 修改密码
 const handleUpdatePassword = async () => {
   if (!passwordFormRef.value) return
 
@@ -315,7 +393,6 @@ const handleUpdatePassword = async () => {
 
     ElMessage.success('密码修改成功')
 
-    // 清空表单
     Object.assign(passwordForm, {
       oldPassword: '',
       newPassword: '',
@@ -329,8 +406,11 @@ const handleUpdatePassword = async () => {
   }
 }
 
-// 获取我的文章
-const fetchMyArticles = async (reset = false) => {
+const handleUploadAvatar = () => {
+  ElMessage.info('图片上传功能正在开发中,请稍后使用')
+}
+
+const fetchPublishedArticles = async (reset = false) => {
   if (loadingArticles.value) return
 
   try {
@@ -338,19 +418,21 @@ const fetchMyArticles = async (reset = false) => {
 
     if (reset) {
       articlesPageNum.value = 1
-      myArticles.value = []
+      publishedArticles.value = []
       hasMoreArticles.value = true
     }
 
-    const res = await getMyArticles({
+    const res = await getUserPublished({
       pageNum: articlesPageNum.value,
-      pageSize: 10
+      pageSize: 10,
+      order: 'desc',
+      documentType: 1
     })
 
     if (reset) {
-      myArticles.value = res.data.list || []
+      publishedArticles.value = res.data.list || []
     } else {
-      myArticles.value = [...myArticles.value, ...(res.data.list || [])]
+      publishedArticles.value = [...publishedArticles.value, ...(res.data.list || [])]
     }
 
     hasMoreArticles.value = res.data.hasNextPage
@@ -362,66 +444,145 @@ const fetchMyArticles = async (reset = false) => {
   }
 }
 
-// 加载更多文章
 const loadMoreArticles = () => {
   if (!hasMoreArticles.value || loadingArticles.value) return
   articlesPageNum.value++
-  fetchMyArticles()
+  fetchPublishedArticles()
 }
 
-// 获取我的收藏
-const fetchMyCollects = async (reset = false) => {
-  if (loadingCollects.value) return
+const fetchCollectionArticles = async (reset = false) => {
+  if (loadingCollections.value) return
 
   try {
-    loadingCollects.value = true
+    loadingCollections.value = true
 
     if (reset) {
-      collectsPageNum.value = 1
-      myCollects.value = []
-      hasMoreCollects.value = true
+      collectionsPageNum.value = 1
+      collectionArticles.value = []
+      hasMoreCollections.value = true
     }
 
-    const res = await getMyCollects({
-      pageNum: collectsPageNum.value,
-      pageSize: 10
+    const res = await getUserCollections({
+      pageNum: collectionsPageNum.value,
+      pageSize: 10,
+      order: 'desc',
+      documentType: 1
     })
 
     if (reset) {
-      myCollects.value = res.data.list || []
+      collectionArticles.value = res.data.list || []
     } else {
-      myCollects.value = [...myCollects.value, ...(res.data.list || [])]
+      collectionArticles.value = [...collectionArticles.value, ...(res.data.list || [])]
     }
 
-    hasMoreCollects.value = res.data.hasNextPage
+    hasMoreCollections.value = res.data.hasNextPage
   } catch (error) {
     console.error('获取我的收藏失败:', error)
     ElMessage.error('获取我的收藏失败')
   } finally {
-    loadingCollects.value = false
+    loadingCollections.value = false
   }
 }
 
-// 加载更多收藏
-const loadMoreCollects = () => {
-  if (!hasMoreCollects.value || loadingCollects.value) return
-  collectsPageNum.value++
-  fetchMyCollects()
+const loadMoreCollections = () => {
+  if (!hasMoreCollections.value || loadingCollections.value) return
+  collectionsPageNum.value++
+  fetchCollectionArticles()
 }
 
-// 初始化个人信息表单
+const fetchPraiseArticles = async (reset = false) => {
+  if (loadingPraises.value) return
+
+  try {
+    loadingPraises.value = true
+
+    if (reset) {
+      praisesPageNum.value = 1
+      praiseArticles.value = []
+      hasMorePraises.value = true
+    }
+
+    const res = await getUserPraises({
+      pageNum: praisesPageNum.value,
+      pageSize: 10,
+      order: 'desc',
+      documentType: 1
+    })
+
+    if (reset) {
+      praiseArticles.value = res.data.list || []
+    } else {
+      praiseArticles.value = [...praiseArticles.value, ...(res.data.list || [])]
+    }
+
+    hasMorePraises.value = res.data.hasNextPage
+  } catch (error) {
+    console.error('获取我的点赞失败:', error)
+    ElMessage.error('获取我的点赞失败')
+  } finally {
+    loadingPraises.value = false
+  }
+}
+
+const loadMorePraises = () => {
+  if (!hasMorePraises.value || loadingPraises.value) return
+  praisesPageNum.value++
+  fetchPraiseArticles()
+}
+
+const fetchReadArticles = async (reset = false) => {
+  if (loadingReads.value) return
+
+  try {
+    loadingReads.value = true
+
+    if (reset) {
+      readsPageNum.value = 1
+      readArticles.value = []
+      hasMoreReads.value = true
+    }
+
+    const res = await getUserReads({
+      pageNum: readsPageNum.value,
+      pageSize: 10,
+      order: 'desc',
+      documentType: 1
+    })
+
+    if (reset) {
+      readArticles.value = res.data.list || []
+    } else {
+      readArticles.value = [...readArticles.value, ...(res.data.list || [])]
+    }
+
+    hasMoreReads.value = res.data.hasNextPage
+  } catch (error) {
+    console.error('获取浏览记录失败:', error)
+    ElMessage.error('获取浏览记录失败')
+  } finally {
+    loadingReads.value = false
+  }
+}
+
+const loadMoreReads = () => {
+  if (!hasMoreReads.value || loadingReads.value) return
+  readsPageNum.value++
+  fetchReadArticles()
+}
+
 const initInfoForm = () => {
-  const userInfo = userStore.userInfo
+  const userInfo = userStore.userInfo || {}
   Object.assign(infoForm, {
     nickname: userInfo.nickname || '',
     email: userInfo.email || '',
-    avatar: userInfo.avatar || ''
+    avatar: userInfo.avatar || '',
+    gender: userInfo.gender || 0,
+    intro: userInfo.intro || '',
+    signature: userInfo.signature || ''
   })
 }
 
-// 初始化数据
 const initData = () => {
-  // 检查登录状态
   if (!userStore.isLogin) {
     ElMessage.warning('请先登录')
     router.push('/login')
@@ -430,21 +591,24 @@ const initData = () => {
 
   initInfoForm()
 
-  // 处理路由参数
   const tab = router.currentRoute.value.query.tab
   if (tab) {
     activeTab.value = tab
 
-    // 根据选择的菜单加载数据
-    if (tab === 'articles' && myArticles.value.length === 0) {
-      fetchMyArticles(true)
-    } else if (tab === 'collects' && myCollects.value.length === 0) {
-      fetchMyCollects(true)
+    if (tab === 'published' && publishedArticles.value.length === 0) {
+      fetchPublishedArticles(true)
+    } else if (tab === 'collection' && collectionArticles.value.length === 0) {
+      fetchCollectionArticles(true)
+    } else if (tab === 'praise' && praiseArticles.value.length === 0) {
+      fetchPraiseArticles(true)
+    } else if (tab === 'read' && readArticles.value.length === 0) {
+      fetchReadArticles(true)
     }
   }
 }
 
 onMounted(() => {
+  console.log('Profile component mounted')
   initData()
 })
 </script>
@@ -452,13 +616,13 @@ onMounted(() => {
 <style scoped>
 .profile-page {
   min-height: 100vh;
-  background: #f5f7fa;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px 20px;
 }
 
 .profile-container {
@@ -467,7 +631,6 @@ onMounted(() => {
   gap: 30px;
 }
 
-/* 左侧边栏 */
 .profile-sidebar {
   display: flex;
   flex-direction: column;
@@ -476,6 +639,8 @@ onMounted(() => {
 
 .user-card {
   text-align: center;
+  border: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 .user-info {
@@ -485,6 +650,7 @@ onMounted(() => {
 .username {
   margin: 15px 0 5px;
   font-size: 18px;
+  font-weight: 600;
   color: #303133;
 }
 
@@ -495,17 +661,46 @@ onMounted(() => {
 }
 
 .profile-menu {
-  border-radius: 4px;
+  border: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
   overflow: hidden;
 }
 
-/* 右侧内容 */
+.profile-menu .el-menu-item {
+  height: 50px;
+  line-height: 50px;
+  margin: 5px 10px;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.profile-menu .el-menu-item:hover {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.profile-menu .el-menu-item.is-active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+}
+
+.profile-menu .el-menu-item.is-active .el-icon {
+  color: #fff;
+}
+
 .profile-content {
   min-height: 500px;
 }
 
 .content-section {
   margin-bottom: 20px;
+}
+
+.content-section .el-card {
+  border: none;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
 }
 
 .section-header {
@@ -520,24 +715,41 @@ onMounted(() => {
 
 .avatar-upload {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 15px;
+}
+
+.avatar-input-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .avatar-input {
   flex: 1;
 }
 
-/* 文章列表 */
 .article-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  max-height: 600px;
+  overflow-y: auto;
 }
 
-.load-more {
+.loading-more {
   text-align: center;
-  margin-top: 20px;
+  padding: 20px;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.loading-more .el-icon {
+  font-size: 20px;
 }
 
 @media (max-width: 768px) {
@@ -551,6 +763,10 @@ onMounted(() => {
 
   .profile-content {
     order: 1;
+  }
+
+  .article-list {
+    max-height: 500px;
   }
 }
 </style>
