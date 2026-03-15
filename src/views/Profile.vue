@@ -112,12 +112,9 @@
                         <span>点击上传</span>
                       </div>
                     </div>
-                    <div class="avatar-input-wrapper">
-                      <el-input v-model="infoForm.avatar" placeholder="或输入头像URL" class="avatar-input" />
-                      <el-button type="primary" size="small" @click="handleUploadAvatar" :loading="uploading">
-                        选择图片
-                      </el-button>
-                    </div>
+                    <el-button type="primary" size="small" @click="handleUploadAvatar" :loading="uploading">
+                      选择图片
+                    </el-button>
                   </div>
                 </el-form-item>
 
@@ -924,7 +921,7 @@ onMounted(() => {
 
 .avatar-upload {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 15px;
 }
 
@@ -966,13 +963,6 @@ onMounted(() => {
 
 .avatar-overlay span {
   font-size: 12px;
-}
-
-.avatar-input-wrapper {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .avatar-input {
