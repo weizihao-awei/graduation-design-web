@@ -60,8 +60,7 @@ const userStore = useUserStore()
 // 计算是否显示操作按钮
 const shouldShowActions = computed(() => {
   return props.showActions &&
-    (userStore.isLogin &&
-      (userStore.isAdmin || userStore.userInfo.id === props.comment.userId))
+    (userStore.isLogin )
 })
 
 // 处理删除评论

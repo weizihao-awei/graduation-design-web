@@ -79,44 +79,8 @@
           </div>
         </el-card>
 
-        <!-- 评论区 -->
-        <el-card class="comments-card">
-          <template #header>
-            <span>评论 ({{ comments.length }})</span>
-          </template>
-
-          <!-- 发表评论 -->
-          <div class="comment-form" v-if="userStore.isLogin">
-            <div v-if="replyingTo" class="replying-tip">
-              <span>正在回复评论</span>
-              <el-button type="text" @click="handleCancelReply">取消</el-button>
-            </div>
-            <el-input v-model="commentContent" type="textarea" placeholder="发表你的评论..." :rows="3" maxlength="500"
-              show-word-limit />
-            <div class="comment-actions">
-              <el-button type="primary" @click="handleSubmitComment" :loading="submittingComment">
-                发表评论
-              </el-button>
-            </div>
-          </div>
-
-          <div v-else class="login-tip">
-            <el-alert title="请登录后发表评论" type="info" :closable="false" show-icon>
-              <template #default>
-                <router-link to="/login" class="login-link">立即登录</router-link>
-              </template>
-            </el-alert>
-          </div>
-
-          <!-- 评论列表 -->
-          <div class="comments-list" v-if="comments.length">
-            <CommentItem v-for="comment in comments" :key="comment.id" :comment="comment"
-              :show-actions="userStore.isLogin" @reply="handleReply" @delete="handleDeleteComment" />
-          </div>
-
-          <!-- 空评论 -->
-          <el-empty v-else description="暂无评论" />
-        </el-card>
+        <CommentSection ref="commentSectionRef" :article-id="String(articleId)"
+          @update-comment-count="handleUpdateCommentCount" />
       </div>
     </div>
 
@@ -129,18 +93,13 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
-import CommentItem from '@/components/CommentItem.vue'
+import CommentSection from '@/components/CommentSection.vue'
 import { useUserStore } from '@/store'
 import {
   getArticleDetail,
   operateArticle,
   deleteArticle
 } from '@/api/article'
-import {
-  getCommentList,
-  createComment,
-  deleteComment
-} from '@/api/comment'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { View, Star, ChatDotRound, Share } from '@element-plus/icons-vue'
 import { formatDate } from '@/utils'
@@ -149,15 +108,10 @@ const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
 
-// 文章ID
 const articleId = computed(() => route.params.id)
 
-// 数据
 const article = ref(null)
-const comments = ref([])
-const commentContent = ref('')
-const submittingComment = ref(false)
-const replyingTo = ref(null)
+const commentSectionRef = ref(null)
 
 // 计算属性
 const showActions = computed(() => {
@@ -165,7 +119,6 @@ const showActions = computed(() => {
     (userStore.isAdmin || userStore.userInfo.id === article.value?.authorId)
 })
 
-// 获取文章详情
 const fetchArticleDetail = async () => {
   try {
     const res = await getArticleDetail(String(articleId.value))
@@ -173,16 +126,6 @@ const fetchArticleDetail = async () => {
   } catch (error) {
     console.error('获取文章详情失败:', error)
     ElMessage.error('获取文章详情失败')
-  }
-}
-
-// 获取评论列表
-const fetchComments = async () => {
-  try {
-    const res = await getCommentList(String(articleId.value))
-    comments.value = res.data
-  } catch (error) {
-    console.error('获取评论列表失败:', error)
   }
 }
 
@@ -277,7 +220,6 @@ const handleDelete = async () => {
   }
 }
 
-// 处理标签点击
 const handleTagClick = (tag) => {
   router.push({
     path: '/articles',
@@ -285,70 +227,14 @@ const handleTagClick = (tag) => {
   })
 }
 
-// 提交评论
-const handleSubmitComment = async () => {
-  if (!commentContent.value.trim()) {
-    ElMessage.warning('请输入评论内容')
-    return
-  }
-
-  try {
-    submittingComment.value = true
-    await createComment({
-      articleId: String(articleId.value),
-      parentId: replyingTo.value ? String(replyingTo.value) : null,
-      content: commentContent.value.trim()
-    })
-
-    ElMessage.success('评论发表成功')
-    commentContent.value = ''
-    replyingTo.value = null
-    fetchComments()
-  } catch (error) {
-    console.error('发表评论失败:', error)
-    ElMessage.error('发表评论失败')
-  } finally {
-    submittingComment.value = false
+const handleUpdateCommentCount = (count) => {
+  if (article.value) {
+    article.value.commentCount = count
   }
 }
 
-// 处理回复评论
-const handleReply = (parentComment) => {
-  replyingTo.value = parentComment.id
-  commentContent.value = `@${parentComment.username} `
-}
-
-const handleCancelReply = () => {
-  replyingTo.value = null
-  commentContent.value = ''
-}
-
-// 处理删除评论
-const handleDeleteComment = async (commentId) => {
-  try {
-    await ElMessageBox.confirm('确定要删除这条评论吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
-
-    await deleteComment(String(commentId))
-    ElMessage.success('删除成功')
-    fetchComments()
-  } catch (error) {
-    if (error !== 'cancel') {
-      console.error('删除评论失败:', error)
-      ElMessage.error('删除评论失败')
-    }
-  }
-}
-
-// 初始化数据
 const initData = async () => {
-  await Promise.all([
-    fetchArticleDetail(),
-    fetchComments()
-  ])
+  await fetchArticleDetail()
 }
 
 onMounted(() => {
@@ -723,71 +609,6 @@ onMounted(() => {
 .admin-actions .el-button:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-light);
-}
-
-/* 评论区 */
-.comments-card {
-  border-radius: var(--border-radius-xl);
-  border: none;
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-  transition: var(--transition-base);
-}
-
-.comments-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-hover);
-}
-
-.comment-form {
-  margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-lg);
-  background: var(--bg-page);
-  border-radius: var(--border-radius-lg);
-}
-
-.replying-tip {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--primary-light);
-  border-radius: var(--border-radius-base);
-  margin-bottom: var(--spacing-md);
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-.replying-tip .el-button {
-  padding: 0;
-  color: var(--primary-color);
-}
-
-.comment-actions {
-  margin-top: var(--spacing-md);
-  text-align: right;
-}
-
-.login-tip {
-  margin-bottom: var(--spacing-xl);
-}
-
-.login-link {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 500;
-  transition: var(--transition-fast);
-}
-
-.login-link:hover {
-  color: var(--primary-dark);
-  text-decoration: underline;
-}
-
-.comments-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
 }
 
 /* 响应式设计 */
