@@ -11,7 +11,7 @@
 
             <div class="article-meta">
               <div class="author-info">
-                <el-avatar :size="32" :src="article.authorAvatar">
+                <el-avatar :size="32" :src="getAvatarUrl(article.authorAvatar)">
                   {{ article.authorName?.charAt(0) }}
                 </el-avatar>
                 <div class="author-details">
@@ -88,6 +88,16 @@ import { formatDate } from '@/utils'
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
+
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return ''
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+    return avatar
+  }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
+  const cleanUri = avatar.startsWith('/api/') ? avatar.substring(4) : avatar
+  return baseUrl + cleanUri
+}
 
 const articleId = computed(() => route.params.id)
 

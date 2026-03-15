@@ -2,7 +2,7 @@
   <div class="comment-item">
     <div class="comment-content">
       <div class="comment-header">
-        <el-avatar :size="32" :src="comment.userAvatar">
+        <el-avatar :size="32" :src="getAvatarUrl(comment.userAvatar)">
           {{ comment.username?.charAt(0) }}
         </el-avatar>
         <div class="comment-meta">
@@ -83,6 +83,16 @@ const props = defineProps({
 const emit = defineEmits(['reply-submitted', 'delete', 'toggle-reply'])
 
 const userStore = useUserStore()
+
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return ''
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+    return avatar
+  }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
+  const cleanUri = avatar.startsWith('/api/') ? avatar.substring(4) : avatar
+  return baseUrl + cleanUri
+}
 
 const showReplyBox = computed(() => {
   return props.activeReplyId === props.comment.id

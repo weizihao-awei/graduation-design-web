@@ -40,7 +40,7 @@
             <!-- 已登录 -->
             <el-dropdown @command="handleUserCommand">
               <div class="user-info">
-                <el-avatar :size="32" :src="userStore.userInfo.avatar">
+                <el-avatar :size="32" :src="getAvatarUrl(userStore.userInfo.avatar)">
                   {{ userStore.userInfo.nickname?.charAt(0) }}
                 </el-avatar>
                 <span class="username">{{ userStore.userInfo.nickname }}</span>
@@ -81,6 +81,16 @@ import { Search, Promotion, ArrowDown } from '@element-plus/icons-vue'
 const router = useRouter()
 const userStore = useUserStore()
 const searchKeyword = ref('')
+
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return ''
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+    return avatar
+  }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
+  const cleanUri = avatar.startsWith('/api/') ? avatar.substring(4) : avatar
+  return baseUrl + cleanUri
+}
 
 const handleSearch = () => {
   if (searchKeyword.value.trim()) {

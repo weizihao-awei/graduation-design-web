@@ -3,7 +3,7 @@
     <div class="card-content">
       <!-- 封面图片 -->
       <div v-if="article.coverImage" class="cover-image">
-        <img :src="article.coverImage" :alt="article.title" @error="handleImageError">
+        <img :src="getCoverImageUrl(article.coverImage)" :alt="article.title" @error="handleImageError">
       </div>
 
       <div class="article-info">
@@ -25,7 +25,7 @@
         <!-- 底部信息 -->
         <div class="article-meta">
           <div class="author-info">
-            <el-avatar :size="24" :src="article.authorAvatar">
+            <el-avatar :size="24" :src="getAvatarUrl(article.authorAvatar)">
               {{ article.authorName?.charAt(0) }}
             </el-avatar>
             <span class="author-name">{{ article.authorName }}</span>
@@ -81,6 +81,26 @@ const props = defineProps({
 
 const router = useRouter()
 const userStore = useUserStore()
+
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return ''
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+    return avatar
+  }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
+  const cleanUri = avatar.startsWith('/api/') ? avatar.substring(4) : avatar
+  return baseUrl + cleanUri
+}
+
+const getCoverImageUrl = (coverImage) => {
+  if (!coverImage) return ''
+  if (coverImage.startsWith('http://') || coverImage.startsWith('https://')) {
+    return coverImage
+  }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
+  const cleanUri = coverImage.startsWith('/api/') ? coverImage.substring(4) : coverImage
+  return baseUrl + cleanUri
+}
 
 // 方法
 const handleImageError = (e) => {

@@ -7,7 +7,7 @@
         <div class="profile-sidebar">
           <el-card class="user-card">
             <div class="user-info">
-              <el-avatar :size="80" :src="userStore.userInfo.avatar">
+              <el-avatar :size="80" :src="getAvatarUrl(userStore.userInfo.avatar)">
                 {{ userStore.userInfo.nickname?.charAt(0) }}
               </el-avatar>
               <h3 class="username">{{ userStore.userInfo.nickname }}</h3>
@@ -101,13 +101,21 @@
                 class="profile-form">
                 <el-form-item label="头像" prop="avatar">
                   <div class="avatar-upload">
-                    <el-avatar :size="80" :src="infoForm.avatar">
-                      {{ infoForm.nickname?.charAt(0) }}
-                    </el-avatar>
+                    <div class="avatar-preview" @click="handleUploadAvatar">
+                      <el-avatar :size="80" :src="getAvatarUrl(infoForm.avatar)">
+                        {{ infoForm.nickname?.charAt(0) }}
+                      </el-avatar>
+                      <div class="avatar-overlay">
+                        <el-icon>
+                          <Upload />
+                        </el-icon>
+                        <span>点击上传</span>
+                      </div>
+                    </div>
                     <div class="avatar-input-wrapper">
-                      <el-input v-model="infoForm.avatar" placeholder="请输入头像URL" class="avatar-input" />
+                      <el-input v-model="infoForm.avatar" placeholder="或输入头像URL" class="avatar-input" />
                       <el-button type="primary" size="small" @click="handleUploadAvatar" :loading="uploading">
-                        上传头像
+                        选择图片
                       </el-button>
                     </div>
                   </div>
@@ -295,8 +303,9 @@ import {
   getUserReads,
   getUserPublished
 } from '@/api/user'
+import { uploadImage, updateImage } from '@/api/image'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Document, Star, StarFilled, View, Loading, Edit } from '@element-plus/icons-vue'
+import { User, Lock, Document, Star, StarFilled, View, Loading, Edit, Upload } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -475,8 +484,60 @@ const handleUpdatePassword = async () => {
   }
 }
 
-const handleUploadAvatar = () => {
-  ElMessage.info('图片上传功能正在开发中,请稍后使用')
+const getAvatarUrl = (avatar) => {
+  if (!avatar) return ''
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+    return avatar
+  }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
+  const cleanUri = avatar.startsWith('/api/') ? avatar.substring(4) : avatar
+  return baseUrl + cleanUri
+}
+
+const handleUploadAvatar = async () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = 'image/jpeg,image/jpg,image/png,image/gif,image/webp'
+
+  input.onchange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    if (file.size > 10 * 1024 * 1024) {
+      ElMessage.error('文件大小不能超过 10MB')
+      return
+    }
+
+    uploading.value = true
+
+    try {
+      let uri
+      const oldUri = infoForm.avatar
+
+      if (oldUri) {
+        const res = await updateImage('avatar', oldUri, file)
+        uri = res.data.uri
+      } else {
+        const res = await uploadImage('avatar', file)
+        uri = res.data.uri
+      }
+
+      infoForm.avatar = uri
+      userStore.setUserInfo({
+        ...userStore.userInfo,
+        avatar: uri
+      })
+
+      ElMessage.success('头像上传成功')
+    } catch (error) {
+      console.error('上传头像失败:', error)
+      ElMessage.error('上传头像失败')
+    } finally {
+      uploading.value = false
+    }
+  }
+
+  input.click()
 }
 
 const fetchPublishedArticles = async (reset = false) => {
@@ -865,6 +926,46 @@ onMounted(() => {
   display: flex;
   align-items: flex-start;
   gap: 15px;
+}
+
+.avatar-preview {
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.avatar-preview:hover {
+  transform: scale(1.05);
+}
+
+.avatar-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  color: #fff;
+  gap: 4px;
+}
+
+.avatar-preview:hover .avatar-overlay {
+  opacity: 1;
+}
+
+.avatar-overlay .el-icon {
+  font-size: 24px;
+}
+
+.avatar-overlay span {
+  font-size: 12px;
 }
 
 .avatar-input-wrapper {

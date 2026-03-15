@@ -123,3 +123,14 @@ export function validateUsername(username) {
 export function validatePassword(password) {
   return password.length >= 6 && password.length <= 20
 }
+
+// 获取图片URL（处理相对路径和绝对路径）
+export function getImageUrl(imagePath) {
+  if (!imagePath) return ''
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath
+  }
+  const baseUrl = import.meta.env.VITE_API_BASE_URL
+  const cleanPath = imagePath.startsWith('/api/') ? imagePath.substring(4) : imagePath
+  return baseUrl + cleanPath
+}
