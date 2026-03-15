@@ -8,15 +8,8 @@
 
     <!-- 评论表单区域：仅登录用户可见 -->
     <div class="comment-form" v-if="userStore.isLogin">
-      <!-- 回复提示：当正在回复某条评论时显示 -->
-      <div v-if="replyingTo" class="replying-tip">
-        <span>正在回复 @{{ replyingToUsername }}</span>
-        <el-button type="text" @click="handleCancelReply">取消</el-button>
-      </div>
-      <!-- 评论输入框 -->
       <el-input v-model="commentContent" type="textarea" placeholder="发表你的评论..." :rows="3" maxlength="500"
         show-word-limit />
-      <!-- 评论操作按钮 -->
       <div class="comment-actions">
         <el-button type="primary" @click="handleSubmitComment" :loading="submittingComment">
           发表评论
@@ -36,7 +29,8 @@
     <!-- 评论列表：当有评论时显示 -->
     <div class="comments-list" v-if="comments.length">
       <CommentItem v-for="comment in comments" :key="comment.id" :comment="comment" :show-actions="userStore.isLogin"
-        @reply="handleReply" @delete="handleDeleteComment" />
+        :article-id="articleId" :is-login="userStore.isLogin" :active-reply-id="activeReplyCommentId"
+        @reply-submitted="fetchComments" @toggle-reply="handleToggleReply" @delete="handleDeleteComment" />
     </div>
 
     <!-- 空状态提示：当没有评论时显示 -->
@@ -80,8 +74,7 @@ const userStore = useUserStore()
 const comments = ref([]) // 评论列表
 const commentContent = ref('') // 评论内容输入
 const submittingComment = ref(false) // 提交评论的加载状态
-const replyingTo = ref(null) // 正在回复的评论 ID
-const replyingToUsername = ref('') // 正在回复的用户名
+const activeReplyCommentId = ref(null) // 当前打开回复框的评论 ID
 
 /**
  * 获取评论列表
@@ -99,7 +92,7 @@ const fetchComments = async () => {
 
 /**
  * 提交评论
- * 验证评论内容后，调用 API 创建新评论或回复
+ * 验证评论内容后，调用 API 创建新评论
  */
 const handleSubmitComment = async () => {
   if (!commentContent.value.trim()) {
@@ -111,14 +104,12 @@ const handleSubmitComment = async () => {
     submittingComment.value = true
     await createComment({
       articleId: props.articleId,
-      parentId: replyingTo.value ? String(replyingTo.value) : null,
+      parentId: null,
       content: commentContent.value.trim()
     })
 
     ElMessage.success('评论发表成功')
     commentContent.value = ''
-    replyingTo.value = null
-    replyingToUsername.value = ''
     fetchComments() // 刷新评论列表
   } catch (error) {
     console.error('发表评论失败:', error)
@@ -129,22 +120,18 @@ const handleSubmitComment = async () => {
 }
 
 /**
- * 处理回复评论
- * 设置正在回复的评论 ID 和用户名
- * @param {Object} parentComment - 被回复的评论对象
+ * 处理切换回复框
+ * 确保同一时间只有一个回复框处于打开状态
+ * @param {String|Number|null} commentId - 评论 ID，传入 null 表示关闭所有回复框
  */
-const handleReply = (parentComment) => {
-  replyingTo.value = parentComment.id
-  replyingToUsername.value = parentComment.username
-}
-
-/**
- * 取消回复
- * 清除回复状态和输入框内容
- */
-const handleCancelReply = () => {
-  replyingTo.value = null
-  replyingToUsername.value = ''
+const handleToggleReply = (commentId) => {
+  if (commentId === null) {
+    activeReplyCommentId.value = null
+  } else if (activeReplyCommentId.value === commentId) {
+    activeReplyCommentId.value = null
+  } else {
+    activeReplyCommentId.value = commentId
+  }
 }
 
 /**
@@ -199,25 +186,6 @@ defineExpose({
   padding: var(--spacing-lg);
   background: var(--bg-page);
   border-radius: var(--border-radius-lg);
-}
-
-/* 回复提示样式 */
-.replying-tip {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--primary-light);
-  border-radius: var(--border-radius-base);
-  margin-bottom: var(--spacing-md);
-  color: var(--primary-color);
-  font-weight: 500;
-}
-
-/* 回复提示中的按钮样式 */
-.replying-tip .el-button {
-  padding: 0;
-  color: var(--primary-color);
 }
 
 /* 评论操作按钮区域 */
