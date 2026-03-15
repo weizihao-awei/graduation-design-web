@@ -68,15 +68,15 @@
                 </el-form-item>
 
                 <el-form-item label="昵称" prop="nickname">
-                  <el-input v-model="infoForm.nickname" />
+                  <el-input v-model="infoForm.nickname" :disabled="!isEditing" />
                 </el-form-item>
 
                 <el-form-item label="邮箱" prop="email">
-                  <el-input v-model="infoForm.email" />
+                  <el-input v-model="infoForm.email" :disabled="!isEditing" />
                 </el-form-item>
 
                 <el-form-item label="性别" prop="gender">
-                  <el-radio-group v-model="infoForm.gender">
+                  <el-radio-group v-model="infoForm.gender" :disabled="!isEditing">
                     <el-radio :label="0">未知</el-radio>
                     <el-radio :label="1">男</el-radio>
                     <el-radio :label="2">女</el-radio>
@@ -84,11 +84,13 @@
                 </el-form-item>
 
                 <el-form-item label="简介" prop="intro">
-                  <el-input v-model="infoForm.intro" type="textarea" :rows="3" placeholder="请输入个人简介" />
+                  <el-input v-model="infoForm.intro" type="textarea" :rows="3" placeholder="请输入个人简介"
+                    :disabled="!isEditing" />
                 </el-form-item>
 
                 <el-form-item label="个性签名" prop="signature">
-                  <el-input v-model="infoForm.signature" type="textarea" :rows="2" placeholder="请输入个性签名" />
+                  <el-input v-model="infoForm.signature" type="textarea" :rows="2" placeholder="请输入个性签名"
+                    :disabled="!isEditing" />
                 </el-form-item>
 
                 <el-form-item label="头像" prop="avatar">
@@ -97,8 +99,10 @@
                       {{ infoForm.nickname?.charAt(0) }}
                     </el-avatar>
                     <div class="avatar-input-wrapper">
-                      <el-input v-model="infoForm.avatar" placeholder="请输入头像URL" class="avatar-input" />
-                      <el-button type="primary" size="small" @click="handleUploadAvatar" :loading="uploading">
+                      <el-input v-model="infoForm.avatar" placeholder="请输入头像URL" class="avatar-input"
+                        :disabled="!isEditing" />
+                      <el-button type="primary" size="small" @click="handleUploadAvatar" :loading="uploading"
+                        :disabled="!isEditing">
                         上传头像
                       </el-button>
                     </div>
@@ -106,9 +110,22 @@
                 </el-form-item>
 
                 <el-form-item>
-                  <el-button type="primary" @click="handleUpdateInfo" :loading="updating">
-                    更新信息
-                  </el-button>
+                  <template v-if="!isEditing">
+                    <el-button type="primary" @click="handleEdit">
+                      <el-icon>
+                        <Edit />
+                      </el-icon>
+                      编辑
+                    </el-button>
+                  </template>
+                  <template v-else>
+                    <el-button type="primary" @click="handleUpdateInfo" :loading="updating">
+                      保存
+                    </el-button>
+                    <el-button @click="handleCancel">
+                      取消
+                    </el-button>
+                  </template>
                 </el-form-item>
               </el-form>
             </el-card>
@@ -261,12 +278,13 @@ import {
   getUserPublished
 } from '@/api/user'
 import { ElMessage } from 'element-plus'
-import { User, Lock, Document, Star, StarFilled, View, Loading } from '@element-plus/icons-vue'
+import { User, Lock, Document, Star, StarFilled, View, Loading, Edit } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const userStore = useUserStore()
 
 const activeTab = ref('info')
+const isEditing = ref(false)
 const infoFormRef = ref()
 const passwordFormRef = ref()
 
@@ -290,6 +308,15 @@ const praisesPageNum = ref(1)
 const readsPageNum = ref(1)
 
 const infoForm = reactive({
+  nickname: '',
+  email: '',
+  avatar: '',
+  gender: 0,
+  intro: '',
+  signature: ''
+})
+
+const originalInfoForm = reactive({
   nickname: '',
   email: '',
   avatar: '',
@@ -354,6 +381,20 @@ const handleMenuSelect = (index) => {
   } else if (index === 'read' && readArticles.value.length === 0) {
     fetchReadArticles(true)
   }
+
+  if (index !== 'info') {
+    isEditing.value = false
+  }
+}
+
+const handleEdit = () => {
+  isEditing.value = true
+  Object.assign(originalInfoForm, { ...infoForm })
+}
+
+const handleCancel = () => {
+  isEditing.value = false
+  Object.assign(infoForm, { ...originalInfoForm })
 }
 
 const handleUpdateInfo = async () => {
@@ -370,6 +411,7 @@ const handleUpdateInfo = async () => {
       ...infoForm
     })
 
+    isEditing.value = false
     ElMessage.success('个人信息更新成功')
   } catch (error) {
     console.error('更新个人信息失败:', error)
