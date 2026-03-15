@@ -52,8 +52,6 @@
                 <el-dropdown-menu>
                   <el-dropdown-item command="write">写文章</el-dropdown-item>
                   <el-dropdown-item command="profile">个人中心</el-dropdown-item>
-                  <el-dropdown-item command="my-articles">我的文章</el-dropdown-item>
-                  <el-dropdown-item command="my-collects">我的收藏</el-dropdown-item>
                   <el-dropdown-item v-if="userStore.isAdmin" command="admin">后台管理</el-dropdown-item>
                   <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
                 </el-dropdown-menu>
@@ -98,7 +96,7 @@ const handleUserCommand = async (command) => {
   console.log('Dropdown command:', command)
   console.log('Is logged in:', userStore.isLogin)
   console.log('User info:', userStore.userInfo)
-  
+
   switch (command) {
     case 'write':
       router.push('/write')
