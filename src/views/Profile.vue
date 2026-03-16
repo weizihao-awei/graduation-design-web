@@ -7,13 +7,16 @@
         <!-- 左侧边栏：用户卡片和菜单 -->
         <div class="profile-sidebar">
           <!-- 用户信息卡片 -->
+          <!-- 数据来源：页面加载时调用 getUserInfo() 从 /api/user/info 接口获取最新数据 -->
+          <!-- 数据存储：存储在 infoForm 中，包括 avatar、nickname、role 等字段 -->
+          <!-- 更新时机：1. 页面加载时获取最新数据 2. 编辑个人信息后自动更新 -->
           <el-card class="user-card">
             <div class="user-info">
-              <el-avatar :size="80" :src="getAvatarUrl(userStore.userInfo.avatar)">
-                {{ userStore.userInfo.nickname?.charAt(0) }}
+              <el-avatar :size="80" :src="getAvatarUrl(infoForm.avatar)">
+                {{ infoForm.nickname?.charAt(0) }}
               </el-avatar>
-              <h3 class="username">{{ userStore.userInfo.nickname }}</h3>
-              <p class="user-role">{{ userStore.isAdmin ? '管理员' : '普通用户' }}</p>
+              <h3 class="username">{{ infoForm.nickname }}</h3>
+              <p class="user-role">{{ infoForm.role === 1 ? '管理员' : '普通用户' }}</p>
             </div>
           </el-card>
 
@@ -76,29 +79,36 @@
               </template>
 
               <!-- 信息展示模式 -->
+              <!-- 所有数据均从 /api/user/info 接口获取，存储在 userStore.userInfo 和 infoForm 中 -->
               <div v-if="!isEditing" class="info-display">
                 <div class="info-item">
                   <span class="info-label">用户名</span>
-                  <span class="info-value">{{ userStore.userInfo.username }}</span>
+                  <!-- 用户名从接口获取，存储在 infoForm.username -->
+                  <span class="info-value">{{ infoForm.username || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">昵称</span>
+                  <!-- 昵称从接口获取，存储在 infoForm.nickname -->
                   <span class="info-value">{{ infoForm.nickname || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">邮箱</span>
+                  <!-- 邮箱从接口获取，存储在 infoForm.email -->
                   <span class="info-value">{{ infoForm.email || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">性别</span>
+                  <!-- 性别从接口获取，存储在 infoForm.gender -->
                   <span class="info-value">{{ getGenderText(infoForm.gender) }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">个性签名</span>
+                  <!-- 个性签名从接口获取，存储在 infoForm.signature -->
                   <span class="info-value">{{ infoForm.signature || '-' }}</span>
                 </div>
                 <div class="info-item">
                   <span class="info-label">简介</span>
+                  <!-- 简介从接口获取，存储在 infoForm.intro -->
                   <span class="info-value">{{ infoForm.intro || '-' }}</span>
                 </div>
               </div>
@@ -106,6 +116,10 @@
               <!-- 信息编辑模式 -->
               <el-form v-else ref="infoFormRef" :model="infoForm" :rules="infoRules" label-width="80px"
                 class="profile-form">
+                <el-form-item label="用户名">
+                  <el-input v-model="infoForm.username" disabled />
+                </el-form-item>
+
                 <el-form-item label="头像" prop="avatar">
                   <div class="avatar-upload">
                     <div class="avatar-preview" @click="handleUploadAvatar">
@@ -303,6 +317,7 @@ import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
 import { useUserStore } from '@/store'
 import {
+  getUserInfo,
   updateUserInfo,
   updatePassword
 } from '@/api/user'
@@ -344,21 +359,25 @@ const praisesPageNum = ref(1)
 const readsPageNum = ref(1)
 
 const infoForm = reactive({
+  username: '',
   nickname: '',
   email: '',
   avatar: '',
   gender: 0,
   intro: '',
-  signature: ''
+  signature: '',
+  role: 0
 })
 
 const originalInfoForm = reactive({
+  username: '',
   nickname: '',
   email: '',
   avatar: '',
   gender: 0,
   intro: '',
-  signature: ''
+  signature: '',
+  role: 0
 })
 
 const passwordForm = reactive({
@@ -714,20 +733,23 @@ const loadMoreReads = () => {
 const initInfoForm = () => {
   const userInfo = userStore.userInfo || {}
   Object.assign(infoForm, {
+    username: userInfo.username || '',
     nickname: userInfo.nickname || '',
     email: userInfo.email || '',
     avatar: userInfo.avatar || '',
     gender: userInfo.gender || 0,
     intro: userInfo.intro || '',
-    signature: userInfo.signature || ''
+    signature: userInfo.signature || '',
+    role: userInfo.role || 0
   })
 }
 
 // 初始化页面数据
 // 1. 检查用户是否登录，未登录则跳转到登录页
-// 2. 初始化个人信息表单
-// 3. 根据 URL 查询参数中的 tab 值，切换到对应的标签页并加载数据
-const initData = () => {
+// 2. 调用接口获取最新的用户信息
+// 3. 初始化个人信息表单
+// 4. 根据 URL 查询参数中的 tab 值，切换到对应的标签页并加载数据
+const initData = async () => {
   // 检查登录状态
   if (!userStore.isLogin) {
     ElMessage.warning('请先登录')
@@ -735,8 +757,20 @@ const initData = () => {
     return
   }
 
-  // 初始化个人信息表单数据
-  initInfoForm()
+  try {
+    // 直接调用 API 接口获取最新的用户信息
+    const res = await getUserInfo()
+    const userInfo = res.data
+
+    // 更新 store 中的用户信息
+    userStore.setUserInfo(userInfo)
+
+    // 初始化个人信息表单数据
+    initInfoForm()
+  } catch (error) {
+    console.error('获取用户信息失败:', error)
+    ElMessage.error('获取用户信息失败')
+  }
 
   // 从路由查询参数中获取 tab 值，用于切换到指定标签页
   const tab = router.currentRoute.value.query.tab
