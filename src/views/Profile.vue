@@ -4,7 +4,9 @@
 
     <div class="container">
       <div class="profile-container">
+        <!-- 左侧边栏：用户卡片和菜单 -->
         <div class="profile-sidebar">
+          <!-- 用户信息卡片 -->
           <el-card class="user-card">
             <div class="user-info">
               <el-avatar :size="80" :src="getAvatarUrl(userStore.userInfo.avatar)">
@@ -15,6 +17,7 @@
             </div>
           </el-card>
 
+          <!-- 侧边栏菜单 -->
           <el-menu :default-active="activeTab" class="profile-menu" @select="handleMenuSelect">
             <el-menu-item index="info">
               <el-icon>
@@ -55,7 +58,9 @@
           </el-menu>
         </div>
 
+        <!-- 右侧内容区域 -->
         <div class="profile-content">
+          <!-- 个人信息标签页 -->
           <div v-show="activeTab === 'info'" class="content-section">
             <el-card>
               <template #header>
@@ -70,6 +75,7 @@
                 </div>
               </template>
 
+              <!-- 信息展示模式 -->
               <div v-if="!isEditing" class="info-display">
                 <div class="info-item">
                   <span class="info-label">用户名</span>
@@ -97,6 +103,7 @@
                 </div>
               </div>
 
+              <!-- 信息编辑模式 -->
               <el-form v-else ref="infoFormRef" :model="infoForm" :rules="infoRules" label-width="80px"
                 class="profile-form">
                 <el-form-item label="头像" prop="avatar">
@@ -154,6 +161,7 @@
             </el-card>
           </div>
 
+          <!-- 修改密码标签页 -->
           <div v-show="activeTab === 'password'" class="content-section">
             <el-card>
               <template #header>
@@ -183,6 +191,7 @@
             </el-card>
           </div>
 
+          <!-- 我的文章标签页 -->
           <div v-show="activeTab === 'published'" class="content-section">
             <el-card>
               <template #header>
@@ -210,6 +219,7 @@
             </el-card>
           </div>
 
+          <!-- 我的收藏标签页 -->
           <div v-show="activeTab === 'collection'" class="content-section">
             <el-card>
               <template #header>
@@ -232,6 +242,7 @@
             </el-card>
           </div>
 
+          <!-- 我的点赞标签页 -->
           <div v-show="activeTab === 'praise'" class="content-section">
             <el-card>
               <template #header>
@@ -254,6 +265,7 @@
             </el-card>
           </div>
 
+          <!-- 浏览记录标签页 -->
           <div v-show="activeTab === 'read'" class="content-section">
             <el-card>
               <template #header>
@@ -697,6 +709,8 @@ const loadMoreReads = () => {
   fetchReadArticles()
 }
 
+// 初始化个人信息表单数据
+// 从 userStore 中获取用户信息，并赋值给 infoForm 响应式对象
 const initInfoForm = () => {
   const userInfo = userStore.userInfo || {}
   Object.assign(infoForm, {
@@ -709,19 +723,27 @@ const initInfoForm = () => {
   })
 }
 
+// 初始化页面数据
+// 1. 检查用户是否登录，未登录则跳转到登录页
+// 2. 初始化个人信息表单
+// 3. 根据 URL 查询参数中的 tab 值，切换到对应的标签页并加载数据
 const initData = () => {
+  // 检查登录状态
   if (!userStore.isLogin) {
     ElMessage.warning('请先登录')
     router.push('/login')
     return
   }
 
+  // 初始化个人信息表单数据
   initInfoForm()
 
+  // 从路由查询参数中获取 tab 值，用于切换到指定标签页
   const tab = router.currentRoute.value.query.tab
   if (tab) {
     activeTab.value = tab
 
+    // 根据不同的 tab 值，加载对应的文章列表数据
     if (tab === 'published' && publishedArticles.value.length === 0) {
       fetchPublishedArticles(true)
     } else if (tab === 'collection' && collectionArticles.value.length === 0) {
@@ -734,6 +756,8 @@ const initData = () => {
   }
 }
 
+// 组件挂载时的生命周期钩子
+// 调用 initData() 初始化页面数据
 onMounted(() => {
   console.log('Profile component mounted')
   initData()

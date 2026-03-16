@@ -2,52 +2,34 @@
   <div class="login-page">
     <div class="login-container">
       <div class="login-box">
+        <!-- 登录框头部 -->
         <div class="login-header">
           <h2>用户登录</h2>
           <p>欢迎回到博客系统</p>
         </div>
-        
-        <el-form
-          ref="loginFormRef"
-          :model="loginForm"
-          :rules="loginRules"
-          label-width="0"
-          class="login-form"
-        >
+
+        <!-- 登录表单 -->
+        <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-width="0" class="login-form">
+          <!-- 用户名输入框 -->
           <el-form-item prop="username">
-            <el-input
-              v-model="loginForm.username"
-              placeholder="请输入用户名"
-              size="large"
-              :prefix-icon="User"
-            />
+            <el-input v-model="loginForm.username" placeholder="请输入用户名" size="large" :prefix-icon="User" />
           </el-form-item>
-          
+
+          <!-- 密码输入框 -->
           <el-form-item prop="password">
-            <el-input
-              v-model="loginForm.password"
-              type="password"
-              placeholder="请输入密码"
-              size="large"
-              :prefix-icon="Lock"
-              show-password
-              @keyup.enter="handleLogin"
-            />
+            <el-input v-model="loginForm.password" type="password" placeholder="请输入密码" size="large" :prefix-icon="Lock"
+              show-password @keyup.enter="handleLogin" />
           </el-form-item>
-          
+
+          <!-- 登录按钮 -->
           <el-form-item>
-            <el-button
-              type="primary"
-              size="large"
-              class="login-button"
-              :loading="loading"
-              @click="handleLogin"
-            >
+            <el-button type="primary" size="large" class="login-button" :loading="loading" @click="handleLogin">
               {{ loading ? '登录中...' : '登录' }}
             </el-button>
           </el-form-item>
         </el-form>
-        
+
+        <!-- 登录框底部链接 -->
         <div class="login-footer">
           <p>
             还没有账号？
@@ -95,26 +77,31 @@ const loginRules = {
 
 const handleLogin = async () => {
   if (!loginFormRef.value) return
-  
+
   try {
     await loginFormRef.value.validate()
     loading.value = true
-    
+
     const res = await login(loginForm)
-    
-    // 保存token和用户信息
+
     userStore.setToken(res.data.token)
     userStore.setUserInfo({
+      token: res.data.token,
+      tokenType: res.data.tokenType,
       id: res.data.userId,
+      userId: res.data.userId,
       username: res.data.username,
       nickname: res.data.nickname,
       avatar: res.data.avatar,
-      role: res.data.role
+      role: res.data.role,
+      gender: res.data.gender,
+      intro: res.data.intro,
+      signature: res.data.signature,
+      email: res.data.email
     })
-    
+
     ElMessage.success('登录成功')
-    
-    // 跳转到原页面或首页
+
     const redirect = route.query.redirect || '/'
     router.push(redirect)
   } catch (error) {
@@ -315,11 +302,11 @@ const handleLogin = async () => {
   .login-container {
     max-width: 350px;
   }
-  
+
   .login-box {
     padding: var(--spacing-lg) var(--spacing-md);
   }
-  
+
   .login-header h2 {
     font-size: 1.5rem;
   }
