@@ -38,27 +38,7 @@
         </div>
 
         <aside class="sidebar">
-          <div class="widget">
-            <h3 class="widget-title">热门标签</h3>
-            <div class="tags-cloud">
-              <el-tag v-for="tag in hotTags" :key="tag.id" :color="tag.color" size="small" class="tag-item"
-                @click="handleTagClick(tag)">
-                {{ tag.name }}
-              </el-tag>
-            </div>
-          </div>
-
-          <div class="widget">
-            <h3 class="widget-title">文章分类</h3>
-            <ul class="category-list">
-              <li v-for="category in categories" :key="category.id" class="category-item">
-                <a href="javascript:;" @click="handleCategoryClick(category)">
-                  {{ category.name }}
-
-                </a>
-              </li>
-            </ul>
-          </div>
+          <Sidebar />
         </aside>
       </div>
     </div>

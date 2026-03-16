@@ -68,15 +68,16 @@ onMounted(() => {
 
 <style scoped>
 .sidebar {
-  width: 280px;
-  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  width: 100%;
 }
 
 .widget {
   background: var(--bg-white);
   border-radius: var(--border-radius-lg);
   padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
   box-shadow: var(--shadow-card);
   transition: var(--transition-base);
 }
@@ -157,11 +158,5 @@ onMounted(() => {
 
 .category-item a:hover {
   color: var(--primary-color);
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    width: 100%;
-  }
 }
 </style>
