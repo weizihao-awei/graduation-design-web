@@ -50,12 +50,6 @@ service.interceptors.response.use(
   (response) => {
     const res = response.data;
 
-    // 添加调试日志
-    console.log("Response:", {
-      status: response.status,
-      data: res,
-    });
-
     // 如果状态码不是200，则认为有错误
     if (res.code !== 200) {
       // 处理不同错误码
@@ -97,6 +91,10 @@ service.interceptors.response.use(
           break;
         case 401:
           message = "未授权，请登录";
+          // 清除token并跳转到登录页
+          localStorage.removeItem("token");
+          localStorage.removeItem("userInfo");
+          window.location.href = "/login";
           break;
         case 403:
           message = "拒绝访问";
