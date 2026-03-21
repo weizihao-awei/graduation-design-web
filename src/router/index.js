@@ -81,6 +81,12 @@ const routes = [
     meta: { title: "个人中心", requiresAuth: true },
   },
   {
+    path: "/author/:userId",
+    name: "Author",
+    component: () => import("@/views/Author.vue"),
+    meta: { title: "作者主页" },
+  },
+  {
     path: "/my-articles",
     redirect: (to) => {
       return {

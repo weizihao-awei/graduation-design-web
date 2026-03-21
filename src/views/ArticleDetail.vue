@@ -10,7 +10,7 @@
             <h1 class="article-title">{{ article.title }}</h1>
 
             <div class="article-meta">
-              <div class="author-info">
+              <div class="author-info" @click="handleAuthorClick">
                 <el-avatar :size="32" :src="getAvatarUrl(article.authorAvatar)">
                   {{ article.authorName?.charAt(0) }}
                 </el-avatar>
@@ -221,6 +221,12 @@ const handleTagClick = (tag) => {
 const handleUpdateCommentCount = (count) => {
   if (article.value) {
     article.value.commentCount = count
+  }
+}
+
+const handleAuthorClick = () => {
+  if (article.value?.authorId) {
+    router.push(`/author/${article.value.authorId}`)
   }
 }
 

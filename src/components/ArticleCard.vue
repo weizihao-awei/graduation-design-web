@@ -24,7 +24,7 @@
 
         <!-- 底部信息 -->
         <div class="article-meta">
-          <div class="author-info">
+          <div class="author-info" @click="handleAuthorClick">
             <el-avatar :size="24" :src="getAvatarUrl(article.authorAvatar)">
               {{ article.authorName?.charAt(0) }}
             </el-avatar>
@@ -112,6 +112,12 @@ const handleImageError = (e) => {
 
 const handleTagClick = (tag) => {
   router.push(`/tag/${tag.id}`)
+}
+
+const handleAuthorClick = () => {
+  if (props.article.authorId) {
+    router.push(`/author/${props.article.authorId}`)
+  }
 }
 </script>
 
