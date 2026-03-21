@@ -9,8 +9,7 @@
       </div>
     </template>
 
-    <div class="article-list" v-infinite-scroll="loadMore"
-      :infinite-scroll-disabled="!hasMore || loading">
+    <div class="article-list" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore || loading">
       <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
     </div>
 
@@ -54,6 +53,10 @@ const props = defineProps({
   showWriteButton: {
     type: Boolean,
     default: false
+  },
+  userId: {
+    type: Number,
+    required: true
   }
 })
 
@@ -84,7 +87,10 @@ const fetchArticles = async (reset = false) => {
 
     switch (props.type) {
       case 'published':
-        res = await getUserPublished(params)
+        res = await getUserPublished({
+          userId: props.userId,
+          ...params
+        })
         break
       case 'collection':
         res = await getUserCollections(params)

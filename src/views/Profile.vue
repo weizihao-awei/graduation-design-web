@@ -17,19 +17,19 @@
 
           <div v-show="activeTab === 'published'" class="content-section">
             <ProfileArticleList ref="publishedListRef" type="published" title="我的文章" empty-text="暂无文章"
-              :show-write-button="true" />
+              :show-write-button="true" :user-id="userInfo.id" />
           </div>
 
           <div v-show="activeTab === 'collection'" class="content-section">
-            <ProfileArticleList ref="collectionListRef" type="collection" title="我的收藏" empty-text="暂无收藏" />
+            <ProfileArticleList ref="collectionListRef" type="collection" title="我的收藏" empty-text="暂无收藏" :user-id="userInfo.id" />
           </div>
 
           <div v-show="activeTab === 'praise'" class="content-section">
-            <ProfileArticleList ref="praiseListRef" type="praise" title="我的点赞" empty-text="暂无点赞" />
+            <ProfileArticleList ref="praiseListRef" type="praise" title="我的点赞" empty-text="暂无点赞" :user-id="userInfo.id" />
           </div>
 
           <div v-show="activeTab === 'read'" class="content-section">
-            <ProfileArticleList ref="readListRef" type="read" title="浏览记录" empty-text="暂无浏览记录" />
+            <ProfileArticleList ref="readListRef" type="read" title="浏览记录" empty-text="暂无浏览记录" :user-id="userInfo.id" />
           </div>
         </div>
       </div>
