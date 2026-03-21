@@ -94,6 +94,8 @@ import ArticleCard from '@/components/ArticleCard.vue'
 import Sidebar from '@/components/Sidebar.vue'
 import { useUserStore } from '@/store'
 import { queryArticles } from '@/api/article'
+import { getCategoryList } from '@/api/category'
+import { getHotTags } from '@/api/tag'
 import { ElMessage } from 'element-plus'
 import { Search, Loading } from '@element-plus/icons-vue'
 
@@ -106,6 +108,8 @@ const loading = ref(false)
 const hasMore = ref(true)
 const pageNum = ref(1)
 const pageSize = ref(10)
+const categories = ref([])
+const tags = ref([])
 
 const articleListRef = ref(null)
 const loadMoreRef = ref(null)
@@ -201,12 +205,35 @@ const handleCategoryClick = (category) => {
   fetchArticles(true)
 }
 
+const fetchCategories = async () => {
+  try {
+    const res = await getCategoryList()
+    categories.value = res.data || []
+  } catch (error) {
+    console.error('获取分类列表失败:', error)
+  }
+}
+
+const fetchTags = async () => {
+  try {
+    const res = await getHotTags()
+    tags.value = res.data || []
+  } catch (error) {
+    console.error('获取标签列表失败:', error)
+  }
+}
+
 const initData = async () => {
   const { categoryId, tagId, keyword, orderBy } = route.query
   if (categoryId) filters.categoryId = parseInt(categoryId)
   if (tagId) filters.tagId = parseInt(tagId)
   if (keyword) filters.keyword = keyword
   if (orderBy) filters.orderBy = orderBy
+
+  await Promise.all([
+    fetchCategories(),
+    fetchTags()
+  ])
 
   fetchArticles(true)
 }

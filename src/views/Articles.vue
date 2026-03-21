@@ -94,6 +94,8 @@ import {
   queryArticles,
   deleteArticle
 } from '@/api/article'
+import { getCategoryList } from '@/api/category'
+import { getHotTags } from '@/api/tag'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Loading } from '@element-plus/icons-vue'
 
@@ -107,6 +109,8 @@ const loading = ref(false)
 const hasMore = ref(true)
 const pageNum = ref(1)
 const pageSize = ref(10)
+const categories = ref([])
+const tags = ref([])
 
 // 瀑布流相关
 const articleListRef = ref(null)
@@ -212,6 +216,26 @@ const handleFilterChange = () => {
   fetchArticles(true)
 }
 
+// 获取分类列表
+const fetchCategories = async () => {
+  try {
+    const res = await getCategoryList()
+    categories.value = res.data || []
+  } catch (error) {
+    console.error('获取分类列表失败:', error)
+  }
+}
+
+// 获取标签列表
+const fetchTags = async () => {
+  try {
+    const res = await getHotTags()
+    tags.value = res.data || []
+  } catch (error) {
+    console.error('获取标签列表失败:', error)
+  }
+}
+
 // 初始化数据
 const initData = async () => {
   // 处理路由参数
@@ -220,6 +244,12 @@ const initData = async () => {
   if (tagId) filters.tagId = parseInt(tagId)
   if (keyword) filters.keyword = keyword
   if (orderBy) filters.orderBy = orderBy.toUpperCase()
+
+  // 获取分类和标签数据
+  await Promise.all([
+    fetchCategories(),
+    fetchTags()
+  ])
 
   fetchArticles(true)
 }
