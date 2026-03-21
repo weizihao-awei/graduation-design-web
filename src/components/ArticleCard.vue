@@ -269,6 +269,12 @@ const handleAuthorClick = () => {
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.author-info:hover {
+  transform: translateY(-2px);
 }
 
 .author-name {

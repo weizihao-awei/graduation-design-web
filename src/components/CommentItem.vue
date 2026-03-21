@@ -2,12 +2,14 @@
   <div class="comment-item">
     <div class="comment-content">
       <div class="comment-header">
-        <el-avatar :size="32" :src="getAvatarUrl(comment.userAvatar)">
-          {{ comment.username?.charAt(0) }}
-        </el-avatar>
-        <div class="comment-meta">
-          <span class="username">{{ comment.username }}</span>
-          <span class="time">{{ formatRelativeTime(comment.createTime) }}</span>
+        <div class="author-info" @click="handleAuthorClick">
+          <el-avatar :size="32" :src="getAvatarUrl(comment.userAvatar)">
+            {{ comment.username?.charAt(0) }}
+          </el-avatar>
+          <div class="comment-meta">
+            <span class="username">{{ comment.username }}</span>
+            <span class="time">{{ formatRelativeTime(comment.createTime) }}</span>
+          </div>
         </div>
 
         <div class="comment-actions" v-if="shouldShowReply || shouldShowDelete">
