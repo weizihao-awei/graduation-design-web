@@ -135,7 +135,7 @@ defineExpose({
 
 watch(() => props.type, () => {
   refresh()
-}, { immediate: true })
+})
 </script>
 
 <style scoped>
