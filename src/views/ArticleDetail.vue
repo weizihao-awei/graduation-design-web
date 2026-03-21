@@ -20,7 +20,7 @@
                 </div>
               </div>
 
-            
+
             </div>
 
             <div class="article-tags" v-if="article.tags && article.tags.length">
@@ -330,6 +330,7 @@ onMounted(() => {
   background: var(--bg-page);
   border-radius: var(--border-radius-lg);
   transition: var(--transition-base);
+  cursor: pointer;
 }
 
 .author-info:hover {

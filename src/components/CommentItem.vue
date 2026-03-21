@@ -54,10 +54,14 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store'
 import { ElMessage } from 'element-plus'
 import { formatRelativeTime } from '@/utils'
 import { createComment } from '@/api/comment'
+
+const router = useRouter()
+const userStore = useUserStore()
 
 const props = defineProps({
   comment: {
@@ -83,8 +87,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['reply-submitted', 'delete', 'toggle-reply'])
-
-const userStore = useUserStore()
 
 const getAvatarUrl = (avatar) => {
   if (!avatar) return ''
@@ -152,6 +154,12 @@ const handleSubmitReply = async () => {
 const handleDelete = () => {
   emit('delete', props.comment.id)
 }
+
+const handleAuthorClick = () => {
+  if (props.comment.userId) {
+    router.push(`/author/${props.comment.userId}`)
+  }
+}
 </script>
 
 <style scoped>
@@ -177,6 +185,18 @@ const handleDelete = () => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.author-info:hover {
+  transform: translateY(-2px);
 }
 
 .comment-meta {
