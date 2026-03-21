@@ -36,9 +36,10 @@
                 <div class="filter-item">
                   <label>排序：</label>
                   <el-select v-model="filters.orderBy" placeholder="默认排序" @change="handleFilterChange">
-                    <el-option label="推荐" value="recommend" />
-                    <el-option label="热门" value="hot" />
-                    <el-option label="最新" value="latest" />
+                    <el-option label="最新发布" value="CREATE_TIME_DESC" />
+                    <el-option label="最早发布" value="CREATE_TIME_ASC" />
+                    <el-option label="最新更新" value="UPDATE_TIME_DESC" />
+                    <el-option label="最早更新" value="UPDATE_TIME_ASC" />
                   </el-select>
                 </div>
               </div>
@@ -113,7 +114,7 @@ let observer = null
 const filters = reactive({
   categoryId: null,
   tagId: null,
-  orderBy: 'latest',
+  orderBy: 'CREATE_TIME_DESC',
   keyword: ''
 })
 

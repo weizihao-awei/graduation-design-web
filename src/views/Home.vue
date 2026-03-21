@@ -2,7 +2,7 @@
   <div class="home-page">
     <!-- 头部 -->
     <Header />
-    
+
     <!-- Banner -->
     <div class="banner">
       <div class="container">
@@ -20,7 +20,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 主要内容 -->
     <div class="container main-content">
       <div class="content-layout">
@@ -30,79 +30,83 @@
           <section v-if="recommendArticles.length" class="featured-section">
             <div class="section-header">
               <h2 class="section-title">
-                <el-icon><Star /></el-icon>
+                <el-icon>
+                  <Star />
+                </el-icon>
                 推荐文章
               </h2>
-              <router-link to="/articles?orderBy=recommend" class="more-link">
+              <router-link to="/recommend-articles" class="more-link">
                 查看更多
-                <el-icon><ArrowRight /></el-icon>
+                <el-icon>
+                  <ArrowRight />
+                </el-icon>
               </router-link>
             </div>
             <div class="featured-grid">
-              <ArticleCard 
-                v-for="article in recommendArticles" 
-                :key="article.id" 
-                :article="article"
-                class="featured-card"
-              />
+              <ArticleCard v-for="article in recommendArticles" :key="article.id" :article="article"
+                class="featured-card" />
             </div>
           </section>
-          
+
           <!-- 热门文章 -->
           <section class="section">
             <div class="section-header">
               <h2 class="section-title">
-                <el-icon><HotWater /></el-icon>
+                <el-icon>
+                  <HotWater />
+                </el-icon>
                 热门文章
               </h2>
-              <router-link to="/articles?orderBy=hot" class="more-link">
+              <router-link to="/hot-articles" class="more-link">
                 查看更多
-                <el-icon><ArrowRight /></el-icon>
+                <el-icon>
+                  <ArrowRight />
+                </el-icon>
               </router-link>
             </div>
             <div class="article-list">
-              <ArticleCard 
-                v-for="article in hotArticles" 
-                :key="article.id" 
-                :article="article" 
-              />
+              <ArticleCard v-for="article in hotArticles" :key="article.id" :article="article" />
             </div>
           </section>
-          
+
           <!-- 最新文章 -->
           <section class="section">
             <div class="section-header">
               <h2 class="section-title">
-                <el-icon><Clock /></el-icon>
+                <el-icon>
+                  <Clock />
+                </el-icon>
                 最新文章
               </h2>
-              <router-link to="/articles?orderBy=latest" class="more-link">
+              <router-link to="/latest-articles" class="more-link">
                 查看更多
-                <el-icon><ArrowRight /></el-icon>
+                <el-icon>
+                  <ArrowRight />
+                </el-icon>
               </router-link>
             </div>
             <div class="article-list">
-              <ArticleCard 
-                v-for="article in latestArticles" 
-                :key="article.id" 
-                :article="article" 
-              />
+              <ArticleCard v-for="article in latestArticles" :key="article.id" :article="article" />
             </div>
           </section>
         </div>
-        
+
         <!-- 右侧侧边栏 -->
         <aside class="sidebar">
           <!-- 统计信息 -->
           <div class="widget statistics-widget">
             <h3 class="widget-title">
-              <el-icon><DataAnalysis /></el-icon>
+              <el-icon>
+                <DataAnalysis />
+              </el-icon>
               站点统计
             </h3>
             <div class="stats-grid">
               <div class="stat-item">
                 <div class="stat-icon">
-                  <el-icon><User /></el-icon>
+                  <el-icon>
+                    <User />
+                  </el-icon>
                 </div>
                 <div class="stat-info">
                   <div class="stat-number">{{ statistics.userCount || 0 }}</div>
@@ -111,7 +115,9 @@
               </div>
               <div class="stat-item">
                 <div class="stat-icon">
-                  <el-icon><Document /></el-icon>
+                  <el-icon>
+                    <Document />
+                  </el-icon>
                 </div>
                 <div class="stat-info">
                   <div class="stat-number">{{ statistics.articleCount || 0 }}</div>
@@ -120,7 +126,9 @@
               </div>
               <div class="stat-item">
                 <div class="stat-icon">
-                  <el-icon><View /></el-icon>
+                  <el-icon>
+                    <View />
+                  </el-icon>
                 </div>
                 <div class="stat-info">
                   <div class="stat-number">{{ statistics.viewCount || 0 }}</div>
@@ -129,7 +137,9 @@
               </div>
               <div class="stat-item">
                 <div class="stat-icon">
-                  <el-icon><ChatDotRound /></el-icon>
+                  <el-icon>
+                    <ChatDotRound />
+                  </el-icon>
                 </div>
                 <div class="stat-info">
                   <div class="stat-number">{{ statistics.commentCount || 0 }}</div>
@@ -138,31 +148,29 @@
               </div>
             </div>
           </div>
-          
+
           <!-- 热门标签 -->
           <div class="widget tags-widget">
             <h3 class="widget-title">
-              <el-icon><PriceTag /></el-icon>
+              <el-icon>
+                <PriceTag />
+              </el-icon>
               热门标签
             </h3>
             <div class="tags-cloud">
-              <el-tag
-                v-for="tag in hotTags"
-                :key="tag.id"
-                :color="tag.color"
-                size="large"
-                class="tag-item"
-                @click="$router.push(`/tag/${tag.id}`)"
-              >
+              <el-tag v-for="tag in hotTags" :key="tag.id" :color="tag.color" size="large" class="tag-item"
+                @click="$router.push(`/tag/${tag.id}`)">
                 {{ tag.name }}
               </el-tag>
             </div>
           </div>
-          
+
           <!-- 分类导航 -->
           <div class="widget categories-widget">
             <h3 class="widget-title">
-              <el-icon><Menu /></el-icon>
+              <el-icon>
+                <Menu />
+              </el-icon>
               文章分类
             </h3>
             <ul class="category-list">
@@ -177,7 +185,7 @@
         </aside>
       </div>
     </div>
-    
+
     <!-- 底部 -->
     <Footer />
   </div>
@@ -189,19 +197,19 @@ import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
 import { useUserStore } from '@/store'
-import { 
-  getHotArticles, 
-  getLatestArticles, 
-  getRecommendArticles 
+import {
+  getHotArticles,
+  getLatestArticles,
+  getRecommendArticles
 } from '@/api/article'
 import { getHotTags } from '@/api/tag'
 import { getCategoryList } from '@/api/category'
 import { getStatistics } from '@/api/statistics'
 import { ElMessage } from 'element-plus'
-import { 
-  HotWater, 
-  Clock, 
-  Star, 
+import {
+  HotWater,
+  Clock,
+  Star,
   ArrowRight,
   DataAnalysis,
   User,
@@ -374,6 +382,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -668,7 +677,7 @@ onMounted(() => {
   .content-layout {
     grid-template-columns: 1fr 280px;
   }
-  
+
   .featured-grid {
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   }
@@ -678,7 +687,7 @@ onMounted(() => {
   .content-layout {
     grid-template-columns: 1fr;
   }
-  
+
   .sidebar {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -690,55 +699,55 @@ onMounted(() => {
   .banner {
     padding: 60px 0;
   }
-  
+
   .banner-title {
     font-size: 2.5rem;
   }
-  
+
   .banner-subtitle {
     font-size: 1.2rem;
   }
-  
+
   .banner-actions {
     flex-direction: column;
     align-items: center;
     gap: 15px;
   }
-  
+
   .banner-actions .el-button {
     width: 200px;
   }
-  
+
   .main-content {
     padding: 30px 0;
   }
-  
+
   .content-layout {
     gap: 25px;
   }
-  
+
   .featured-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
   }
-  
+
   .stat-item {
     flex-direction: column;
     text-align: center;
     gap: 8px;
     padding: 12px;
   }
-  
+
   .stat-icon {
     width: 40px;
     height: 40px;
     font-size: 18px;
   }
-  
+
   .stat-number {
     font-size: 1.4rem;
   }
@@ -748,49 +757,49 @@ onMounted(() => {
   .banner {
     padding: 40px 0;
   }
-  
+
   .banner-title {
     font-size: 2rem;
   }
-  
+
   .banner-subtitle {
     font-size: 1rem;
   }
-  
+
   .banner-actions .el-button {
     width: 100%;
     padding: 12px 20px;
     font-size: 14px;
   }
-  
+
   .main-content {
     padding: 20px 0;
   }
-  
+
   .section,
   .widget,
   .featured-section {
     padding: 20px;
   }
-  
+
   .section-header {
     margin-bottom: 20px;
     padding-bottom: 15px;
   }
-  
+
   .section-title {
     font-size: 1.3rem;
   }
-  
+
   .widget-title {
     font-size: 1.1rem;
     padding-bottom: 12px;
   }
-  
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  
+
   .sidebar {
     display: flex;
     flex-direction: column;
