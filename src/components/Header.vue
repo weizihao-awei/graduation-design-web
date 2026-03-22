@@ -76,7 +76,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/store'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Search, Promotion, ArrowDown } from '@element-plus/icons-vue'
+
 
 const router = useRouter()
 const userStore = useUserStore()

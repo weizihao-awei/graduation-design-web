@@ -1,5 +1,18 @@
 <script setup>
-// 主应用组件
+import { onMounted } from 'vue'
+import { useUserStore } from '@/store'
+
+const userStore = useUserStore()
+
+onMounted(async () => {
+  if (userStore.isLogin && !userStore.userInfo.id) {
+    try {
+      await userStore.getUserInfoAction()
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+    }
+  }
+})
 </script>
 
 <template>

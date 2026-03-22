@@ -6,8 +6,7 @@ import { ref, computed } from "vue";
 import { getUserInfo } from "@/api/user";
 // 引入 Element Plus 的消息提示组件
 import { ElMessage } from "element-plus";
-// 引入私信 store
-import { useMessageStore } from "./message.js";
+
 
 /**
  * 用户状态管理 Store
@@ -17,8 +16,8 @@ export const useUserStore = defineStore("user", () => {
   // ==================== 状态定义 ====================
   // 从 localStorage 中获取 token，如果不存在则为空字符串
   const token = ref(localStorage.getItem("token") || "");
-  // 从 localStorage 中获取用户信息，如果不存在则为空对象
-  const userInfo = ref(JSON.parse(localStorage.getItem("userInfo") || "{}"));
+  // 用户信息，不再从 localStorage 读取
+  const userInfo = ref({});
 
   // ==================== 计算属性 ====================
   // 判断用户是否已登录，token 存在即表示已登录
@@ -43,8 +42,6 @@ export const useUserStore = defineStore("user", () => {
    */
   const setUserInfo = (info) => {
     userInfo.value = info;
-    // 将用户信息序列化为 JSON 字符串后保存到 localStorage
-    localStorage.setItem("userInfo", JSON.stringify(info));
   };
 
   /**
@@ -69,13 +66,12 @@ export const useUserStore = defineStore("user", () => {
 
   /**
    * 用户登出
-   * 清空 token 和用户信息，并清除 localStorage 中的数据
+   * 清空 token 和用户信息
    */
   const logout = () => {
     token.value = "";
     userInfo.value = {};
     localStorage.removeItem("token");
-    localStorage.removeItem("userInfo");
   };
 
   // 导出状态、计算属性和方法
