@@ -17,6 +17,9 @@
                 <h1 class="author-name">{{ authorInfo.nickname }}</h1>
                 <p class="author-intro">{{ authorInfo.intro || '这个人很懒，还没有写简介~' }}</p>
                 <p class="author-signature">{{ authorInfo.signature }}</p>
+                <div class="author-actions" v-if="userStore.isLogin && userStore.userInfo.id !== authorInfo.id">
+                  <el-button type="primary" :icon="ChatDotRound" @click="handleSendMessage">私信</el-button>
+                </div>
               </div>
               <div class="author-stats">
                 <div class="stat-item">
@@ -55,7 +58,8 @@
                 </div>
               </template>
 
-              <div class="article-list" v-infinite-scroll="loadMore" :infinite-scroll-disabled="!hasMore || loadingArticles">
+              <div class="article-list" v-infinite-scroll="loadMore"
+                :infinite-scroll-disabled="!hasMore || loadingArticles">
                 <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
               </div>
 
@@ -81,16 +85,22 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { useUserStore } from '@/store'
 import { ElMessage } from 'element-plus'
-import { Loading } from '@element-plus/icons-vue'
+import { Loading, ChatDotRound } from '@element-plus/icons-vue'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
 import { getAuthorInfo } from '@/api/user'
 import { getUserPublished } from '@/api/user'
+import { getOrCreateChat } from '@/api/message'
+import { useMessageStore } from '@/store/message'
 
 const route = useRoute()
+const router = useRouter()
+const userStore = useUserStore()
+const messageStore = useMessageStore()
 
 const loading = ref(false)
 const loadingArticles = ref(false)
@@ -175,6 +185,28 @@ const getAvatarUrl = (avatar) => {
   const baseUrl = import.meta.env.VITE_API_BASE_URL
   const cleanUri = avatar.startsWith('/api/') ? avatar.substring(4) : avatar
   return baseUrl + cleanUri
+}
+
+const handleSendMessage = async () => {
+  try {
+    const res = await getOrCreateChat({
+      otherUserId: authorInfo.value.id
+    })
+    const chatId = res.data
+
+    messageStore.setCurrentChatInfo({
+      otherNickname: authorInfo.value.nickname,
+      otherAvatar: authorInfo.value.avatar,
+      otherUserId: authorInfo.value.id
+    })
+
+    router.push({
+      path: '/chat',
+      query: { chatId }
+    })
+  } catch (error) {
+    ElMessage.error('创建会话失败')
+  }
 }
 
 watch(() => route.params.userId, () => {
@@ -275,6 +307,10 @@ onMounted(() => {
   margin: 0;
 }
 
+.author-actions {
+  margin-top: 16px;
+}
+
 .author-stats {
   display: flex;
   gap: 40px;
@@ -343,6 +379,7 @@ onMounted(() => {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

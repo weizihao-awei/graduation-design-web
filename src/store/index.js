@@ -6,6 +6,8 @@ import { ref, computed } from "vue";
 import { getUserInfo } from "@/api/user";
 // 引入 Element Plus 的消息提示组件
 import { ElMessage } from "element-plus";
+// 引入私信 store
+import { useMessageStore } from "./message.js";
 
 /**
  * 用户状态管理 Store

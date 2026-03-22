@@ -85,20 +85,8 @@ const handleLogin = async () => {
     const res = await login(loginForm)
 
     userStore.setToken(res.data.token)
-    userStore.setUserInfo({
-      token: res.data.token,
-      tokenType: res.data.tokenType,
-      id: res.data.userId,
-      userId: res.data.userId,
-      username: res.data.username,
-      nickname: res.data.nickname,
-      avatar: res.data.avatar,
-      role: res.data.role,
-      gender: res.data.gender,
-      intro: res.data.intro,
-      signature: res.data.signature,
-      email: res.data.email
-    })
+
+    await userStore.getUserInfoAction()
 
     ElMessage.success('登录成功')
 
