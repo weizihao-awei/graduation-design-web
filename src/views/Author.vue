@@ -79,6 +79,9 @@
       </div>
     </div>
 
+    <ChatDialog v-model="chatDialogVisible" :other-nickname="authorInfo.nickname" :other-avatar="authorInfo.avatar"
+      :other-user-id="authorInfo.id" :chat-id="chatId" />
+
     <Footer />
   </div>
 </template>
@@ -95,12 +98,11 @@ import ArticleCard from '@/components/ArticleCard.vue'
 import { getAuthorInfo } from '@/api/user'
 import { getUserPublished } from '@/api/user'
 import { getOrCreateChat } from '@/api/message'
-import { useMessageStore } from '@/store/message'
+import ChatDialog from '@/components/ChatDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
 const userStore = useUserStore()
-const messageStore = useMessageStore()
 
 const loading = ref(false)
 const loadingArticles = ref(false)
@@ -108,6 +110,8 @@ const authorInfo = ref({})
 const articles = ref([])
 const hasMore = ref(true)
 const pageNum = ref(1)
+const chatDialogVisible = ref(false)
+const chatId = ref('')
 
 const fetchAuthorInfo = async () => {
   const userId = route.params.userId
@@ -192,18 +196,8 @@ const handleSendMessage = async () => {
     const res = await getOrCreateChat({
       otherUserId: authorInfo.value.id
     })
-    const chatId = res.data
-
-    messageStore.setCurrentChatInfo({
-      otherNickname: authorInfo.value.nickname,
-      otherAvatar: authorInfo.value.avatar,
-      otherUserId: authorInfo.value.id
-    })
-
-    router.push({
-      path: '/chat',
-      query: { chatId }
-    })
+    chatId.value = res.data
+    chatDialogVisible.value = true
   } catch (error) {
     ElMessage.error('创建会话失败')
   }

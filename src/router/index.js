@@ -87,12 +87,6 @@ const routes = [
     meta: { title: "作者主页" },
   },
   {
-    path: "/chat",
-    name: "Chat",
-    component: () => import("@/views/Chat.vue"),
-    meta: { title: "私信", requiresAuth: true },
-  },
-  {
     path: "/my-articles",
     redirect: (to) => {
       return {
