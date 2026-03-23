@@ -234,7 +234,19 @@ const handleFollow = async () => {
       operation
     })
 
+    // 更新关注状态
     isFollowing.value = !isFollowing.value
+
+    // 同步更新粉丝数量
+    const currentCount = authorInfo.value.followersCount || 0
+    if (isFollowing.value) {
+      // 关注成功，粉丝数+1
+      authorInfo.value.followersCount = currentCount + 1
+    } else {
+      // 取消关注，粉丝数-1
+      authorInfo.value.followersCount = Math.max(0, currentCount - 1)
+    }
+
     ElMessage.success(isFollowing.value ? '关注成功' : '取消关注成功')
   } catch (error) {
     console.error('关注操作失败:', error)

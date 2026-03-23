@@ -52,7 +52,7 @@
 </template>
 
 <script setup>
-import { User, Lock, Document, Star, StarFilled, View } from '@element-plus/icons-vue'
+import { User, Lock, Document, Star, StarFilled, View, UserFilled, Connection } from '@element-plus/icons-vue'
 
 const props = defineProps({
   activeTab: {
