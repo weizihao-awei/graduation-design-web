@@ -6,7 +6,7 @@ const JSONbigString = JSONbig({ storeAsString: true });
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8081/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
   timeout: 15000,
   // 使用 json-bigint 处理大整数，将大整数转换为字符串
   transformResponse: [
@@ -29,13 +29,6 @@ service.interceptors.request.use(
       config.headers["Authorization"] = `Bearer ${token}`;
     }
 
-    // 添加调试日志
-    console.log("Request:", {
-      url: config.url,
-      method: config.method,
-      data: config.data,
-      headers: config.headers,
-    });
 
     return config;
   },
