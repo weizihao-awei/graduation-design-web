@@ -18,38 +18,25 @@
           </div>
 
           <div class="chat-messages" ref="messagesContainer" v-loading="loadingMessages">
-            <div v-for="message in messageList" :key="message.id" class="message-item" :class="{
-              'message-sent': String(message.senderId) === currentUserId,
-              'message-received': String(message.senderId) !== currentUserId,
-            }">
-              <el-avatar :size="36" :key="String(message.senderId) === currentUserId
-                ? message.senderAvatar
-                : message.receiverAvatar" :src="String(message.senderId) === currentUserId
-                  ? getAvatarUrl(message.senderAvatar)
-                  : getAvatarUrl(message.receiverAvatar)
-                  ">
-                {{
-                  String(message.senderId) === currentUserId
-                    ? message.senderNickname?.charAt(0)
-                    : message.receiverNickname?.charAt(0)
-                }}
+            <div v-for="message in messageList" :key="message.id" class="message-item"
+              :class="isMe(message.senderId) ? 'message-sent' : 'message-received'">
+              <!-- 修复：统一使用 sender 的信息显示头像，因为消息气泡旁边显示的是发送这条消息的人 -->
+              <el-avatar :size="36" :src="getAvatarUrl(message.senderAvatar)">
+                {{ message.senderNickname?.charAt(0) }}
               </el-avatar>
+
               <div class="message-content">
                 <div class="message-info">
-                  <span class="message-sender">{{
-                    String(message.senderId) === currentUserId
-                      ? "我"
-                      : message.senderNickname
-                  }}</span>
-                  <span class="message-time">{{
-                    formatMessageTime(message.createTime)
-                  }}</span>
+                  <span class="message-sender">
+                    {{ isMe(message.senderId) ? '我' : message.senderNickname }}
+                  </span>
+                  <span class="message-time">{{ formatMessageTime(message.createTime) }}</span>
                 </div>
                 <div class="message-text">{{ message.content }}</div>
               </div>
             </div>
 
-            <el-empty v-if="!loadingMessages && messageList.length === 0" description="暂无消息" />
+            <el-empty v-if="!loadingMessages && !messageList.length" description="暂无消息" />
           </div>
 
           <div class="chat-input-area">
@@ -98,6 +85,7 @@ const otherUserInfo = ref({});
 const chatId = ref("");
 
 const currentUserId = computed(() => String(userStore.userInfo.id));
+const isMe = (senderId) => String(senderId) === currentUserId.value;
 
 const getAvatarUrl = (avatar) => {
   if (!avatar) return "";
@@ -106,8 +94,7 @@ const getAvatarUrl = (avatar) => {
   }
   const baseUrl = import.meta.env.VITE_API_BASE_URL;
   const cleanUri = avatar.startsWith("/api/") ? avatar.substring(4) : avatar;
-  const url = baseUrl + cleanUri;
-  return url;
+  return baseUrl + cleanUri;
 };
 
 const formatMessageTime = (time) => {
@@ -116,27 +103,22 @@ const formatMessageTime = (time) => {
   const now = new Date();
   const diff = now - date;
 
-  if (diff < 60000) {
-    return "刚刚";
-  } else if (diff < 3600000) {
-    return `${Math.floor(diff / 60000)}分钟前`;
-  } else if (diff < 86400000) {
-    return `${Math.floor(diff / 3600000)}小时前`;
-  } else {
-    return date.toLocaleString("zh-CN", {
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }
+  if (diff < 60000) return "刚刚";
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
+
+  return date.toLocaleString("zh-CN", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };
 
 const scrollToBottom = () => {
   nextTick(() => {
     if (messagesContainer.value) {
-      messagesContainer.value.scrollTop =
-        messagesContainer.value.scrollHeight;
+      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
     }
   });
 };
@@ -151,11 +133,11 @@ const fetchMessages = async () => {
       pageNum: 1,
       pageSize: 100,
     });
-    messageList.value = res.data.list.sort((a, b) => {
-      return new Date(a.createTime) - new Date(b.createTime);
-    });
+    messageList.value = res.data.list.sort((a, b) =>
+      new Date(a.createTime) - new Date(b.createTime)
+    );
     scrollToBottom();
-  } catch (error) {
+  } catch {
     ElMessage.error("获取消息列表失败");
   } finally {
     loadingMessages.value = false;
@@ -163,8 +145,8 @@ const fetchMessages = async () => {
 };
 
 const handleSend = async () => {
-  if (!inputMessage.value.trim()) return;
-
+  const content = inputMessage.value.trim();
+  if (!content) return;
   if (!otherUserInfo.value.id) {
     ElMessage.error("接收者信息不完整，请刷新页面重试");
     return;
@@ -175,10 +157,10 @@ const handleSend = async () => {
     const res = await sendMessage({
       chatId: chatId.value,
       receiverId: otherUserInfo.value.id,
-      content: inputMessage.value.trim(),
+      content,
     });
 
-    const newMessage = {
+    messageList.value.push({
       id: res.data,
       chatId: chatId.value,
       senderId: currentUserId.value,
@@ -187,68 +169,48 @@ const handleSend = async () => {
       receiverId: otherUserInfo.value.id,
       receiverNickname: otherUserInfo.value.nickname,
       receiverAvatar: otherUserInfo.value.avatar,
-      content: inputMessage.value.trim(),
+      content,
       isRead: 0,
       createTime: new Date().toISOString(),
-    };
+    });
 
-    messageList.value.push(newMessage);
     inputMessage.value = "";
     scrollToBottom();
-  } catch (error) {
-    console.error("发送消息失败:", error);
+  } catch {
     ElMessage.error("发送消息失败");
   } finally {
     sending.value = false;
   }
 };
 
-// 返回上一页
-const handleBack = () => {
-  router.back();
-};
+const handleBack = () => router.back();
 
-/**
- * 初始化聊天功能
- * 根据路由参数中的userId，获取或创建聊天会话，并加载对方用户信息和消息列表
- */
 const initChat = async () => {
-  // 从路由参数中获取对方用户ID
   const userId = route.params.userId;
-  // 如果没有用户ID，直接返回
   if (!userId) return;
 
-  // 设置加载状态
   loading.value = true;
   try {
-    // 并行请求：获取或创建聊天会话、获取对方用户信息
     const [chatRes, authorRes] = await Promise.all([
       getOrCreateChat({ otherUserId: userId }),
       getAuthorInfo({ userId })
     ]);
 
-    // 保存聊天会话ID
     chatId.value = chatRes.data;
-    // 保存对方用户信息
     otherUserInfo.value = authorRes.data;
-
-    // 获取消息列表
     await fetchMessages();
-  } catch (error) {
-    console.error("初始化聊天失败:", error);
+  } catch {
     ElMessage.error("初始化聊天失败");
   } finally {
-    // 无论成功失败，都关闭加载状态
     loading.value = false;
   }
 };
 
-onMounted(() => {
-  initChat();
-});
+onMounted(initChat);
 </script>
 
 <style scoped>
+/* 样式保持不变 */
 .chat-page {
   min-height: 100vh;
   background: #f5f7fa;
@@ -300,12 +262,6 @@ onMounted(() => {
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin: 0;
-}
-
-.chat-user-status {
-  font-size: 0.875rem;
-  color: var(--success-color);
   margin: 0;
 }
 
