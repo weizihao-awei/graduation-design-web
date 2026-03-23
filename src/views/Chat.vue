@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/store";
 import { getMessageList, sendMessage, getOrCreateChat } from "@/api/message";
@@ -83,6 +83,7 @@ const messageList = ref([]);
 const messagesContainer = ref(null);
 const otherUserInfo = ref({});
 const chatId = ref("");
+const pollingTimer = ref(null);
 
 const currentUserId = computed(() => String(userStore.userInfo.id));
 const isMe = (senderId) => String(senderId) === currentUserId.value;
@@ -133,10 +134,17 @@ const fetchMessages = async () => {
       pageNum: 1,
       pageSize: 100,
     });
-    messageList.value = res.data.list.sort((a, b) =>
+    const newMessages = res.data.list.sort((a, b) =>
       new Date(a.createTime) - new Date(b.createTime)
     );
-    scrollToBottom();
+
+    const existingIds = new Set(messageList.value.map(m => m.id));
+    const uniqueNewMessages = newMessages.filter(m => !existingIds.has(m.id));
+
+    if (uniqueNewMessages.length > 0) {
+      messageList.value = [...messageList.value, ...uniqueNewMessages];
+      scrollToBottom();
+    }
   } catch {
     ElMessage.error("获取消息列表失败");
   } finally {
@@ -154,28 +162,14 @@ const handleSend = async () => {
 
   sending.value = true;
   try {
-    const res = await sendMessage({
+    await sendMessage({
       chatId: chatId.value,
       receiverId: otherUserInfo.value.id,
       content,
-    });
-
-    messageList.value.push({
-      id: res.data,
-      chatId: chatId.value,
-      senderId: currentUserId.value,
-      senderNickname: userStore.userInfo.nickname,
-      senderAvatar: userStore.userInfo.avatar,
-      receiverId: otherUserInfo.value.id,
-      receiverNickname: otherUserInfo.value.nickname,
-      receiverAvatar: otherUserInfo.value.avatar,
-      content,
-      isRead: 0,
-      createTime: new Date().toISOString(),
     });
 
     inputMessage.value = "";
-    scrollToBottom();
+    await fetchMessages();
   } catch {
     ElMessage.error("发送消息失败");
   } finally {
@@ -184,6 +178,22 @@ const handleSend = async () => {
 };
 
 const handleBack = () => router.back();
+
+const startPolling = () => {
+  if (pollingTimer.value) {
+    clearInterval(pollingTimer.value);
+  }
+  pollingTimer.value = setInterval(() => {
+    fetchMessages();
+  }, 4000);
+};
+
+const stopPolling = () => {
+  if (pollingTimer.value) {
+    clearInterval(pollingTimer.value);
+    pollingTimer.value = null;
+  }
+};
 
 const initChat = async () => {
   const userId = route.params.userId;
@@ -199,6 +209,7 @@ const initChat = async () => {
     chatId.value = chatRes.data;
     otherUserInfo.value = authorRes.data;
     await fetchMessages();
+    startPolling();
   } catch {
     ElMessage.error("初始化聊天失败");
   } finally {
@@ -207,6 +218,7 @@ const initChat = async () => {
 };
 
 onMounted(initChat);
+onUnmounted(stopPolling);
 </script>
 
 <style scoped>
