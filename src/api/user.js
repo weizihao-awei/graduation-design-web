@@ -1,10 +1,11 @@
 import request from "@/utils/request";
 
-// 获取当前用户信息
-export function getUserInfo() {
+// 获取用户信息（不传 userId 则查询当前登录用户）
+export function getUserInfo(userId) {
   return request({
     url: "/user/info",
     method: "get",
+    params: userId ? { userId } : undefined,
   });
 }
 

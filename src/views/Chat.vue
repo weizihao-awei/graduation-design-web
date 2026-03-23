@@ -65,7 +65,7 @@ import { ref, onMounted, computed, nextTick } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useUserStore } from "@/store";
 import { getMessageList, sendMessage, getOrCreateChat } from "@/api/message";
-import { getAuthorInfo } from "@/api/user";
+import { getUserInfo } from "@/api/user";
 import { ElMessage } from "element-plus";
 import { Promotion, ArrowLeft } from "@element-plus/icons-vue";
 import Header from "@/components/Header.vue";
@@ -193,7 +193,7 @@ const initChat = async () => {
   try {
     const [chatRes, authorRes] = await Promise.all([
       getOrCreateChat({ otherUserId: userId }),
-      getAuthorInfo({ userId })
+      getUserInfo(userId)
     ]);
 
     chatId.value = chatRes.data;
