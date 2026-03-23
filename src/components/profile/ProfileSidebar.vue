@@ -7,6 +7,16 @@
         </el-avatar>
         <h3 class="username">{{ userInfo.nickname }}</h3>
         <p class="user-role">{{ userInfo.role === 1 ? '管理员' : '普通用户' }}</p>
+        <div class="user-stats">
+          <div class="stat-item" @click="handleMenuSelect('followers')">
+            <div class="stat-value">{{ formatNumber(userInfo.followersCount) }}</div>
+            <div class="stat-label">粉丝</div>
+          </div>
+          <div class="stat-item" @click="handleMenuSelect('following')">
+            <div class="stat-value">{{ formatNumber(userInfo.followingCount) }}</div>
+            <div class="stat-label">关注</div>
+          </div>
+        </div>
       </div>
     </el-card>
 
@@ -71,6 +81,16 @@ const handleMenuSelect = (index) => {
   emit('select', index)
 }
 
+const formatNumber = (num) => {
+  if (!num) return 0
+  if (num >= 10000) {
+    return (num / 10000).toFixed(1) + 'w'
+  } else if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'k'
+  }
+  return num
+}
+
 const getAvatarUrl = (avatar) => {
   if (!avatar) return ''
   if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
@@ -106,6 +126,37 @@ const getAvatarUrl = (avatar) => {
 .user-role {
   margin: 0;
   font-size: 14px;
+  color: #909399;
+}
+
+.user-stats {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.stat-item {
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #303133;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
   color: #909399;
 }
 
