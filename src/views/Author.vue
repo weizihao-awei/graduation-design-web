@@ -18,6 +18,9 @@
                 <p class="author-intro">{{ authorInfo.intro || '这个人很懒，还没有写简介~' }}</p>
                 <p class="author-signature">{{ authorInfo.signature }}</p>
                 <div class="author-actions" v-if="userStore.isLogin && userStore.userInfo.id !== authorInfo.id">
+                  <el-button :type="isFollowing ? 'default' : 'primary'" :loading="followLoading" @click="handleFollow">
+                    {{ isFollowing ? '已关注' : '+ 关注' }}
+                  </el-button>
                   <el-button type="primary" :icon="ChatDotRound" @click="handleSendMessage">私信</el-button>
                 </div>
               </div>
@@ -26,11 +29,11 @@
                   <div class="stat-value">{{ formatNumber(authorInfo.articlesCount) }}</div>
                   <div class="stat-label">文章</div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item" @click="openFollowersDialog">
                   <div class="stat-value">{{ formatNumber(authorInfo.followersCount) }}</div>
                   <div class="stat-label">粉丝</div>
                 </div>
-                <div class="stat-item">
+                <div class="stat-item" @click="openFollowingDialog">
                   <div class="stat-value">{{ formatNumber(authorInfo.followingCount) }}</div>
                   <div class="stat-label">关注</div>
                 </div>
@@ -80,6 +83,14 @@
     </div>
 
     <Footer />
+
+    <!-- 粉丝列表弹窗 -->
+    <UserListDialog v-model="followersDialogVisible" title="粉丝列表" :user-list="followersList" :loading="followersLoading"
+      :loading-more="followersLoadingMore" :has-more="followersHasMore" @load-more="loadMoreFollowers" />
+
+    <!-- 关注列表弹窗 -->
+    <UserListDialog v-model="followingDialogVisible" title="关注列表" :user-list="followingList" :loading="followingLoading"
+      :loading-more="followingLoadingMore" :has-more="followingHasMore" @load-more="loadMoreFollowing" />
   </div>
 </template>
 
@@ -92,8 +103,10 @@ import { Loading, ChatDotRound } from '@element-plus/icons-vue'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
 import ArticleCard from '@/components/ArticleCard.vue'
+import UserListDialog from '@/components/UserListDialog.vue'
 import { getAuthorInfo } from '@/api/user'
 import { getUserPublished } from '@/api/user'
+import { followUser, getFollowers, getFollowing } from '@/api/relation'
 
 const route = useRoute()
 const router = useRouter()
@@ -105,6 +118,22 @@ const authorInfo = ref({})
 const articles = ref([])
 const hasMore = ref(true)
 const pageNum = ref(1)
+const isFollowing = ref(false)
+const followLoading = ref(false)
+
+// 粉丝/关注列表弹窗相关
+const followersDialogVisible = ref(false)
+const followingDialogVisible = ref(false)
+const followersList = ref([])
+const followingList = ref([])
+const followersLoading = ref(false)
+const followingLoading = ref(false)
+const followersLoadingMore = ref(false)
+const followingLoadingMore = ref(false)
+const followersHasMore = ref(true)
+const followingHasMore = ref(true)
+const followersPageNum = ref(1)
+const followingPageNum = ref(1)
 
 const fetchAuthorInfo = async () => {
   const userId = route.params.userId
@@ -114,6 +143,8 @@ const fetchAuthorInfo = async () => {
     loading.value = true
     const res = await getAuthorInfo({ userId })
     authorInfo.value = res.data
+    // 使用后端返回的isFollowed字段初始化关注状态
+    isFollowing.value = res.data.isFollowed || false
   } catch (error) {
     console.error('获取作者信息失败:', error)
     ElMessage.error('获取作者信息失败')
@@ -186,6 +217,132 @@ const getAvatarUrl = (avatar) => {
 
 const handleSendMessage = () => {
   router.push(`/chat/${authorInfo.value.id}`)
+}
+
+const handleFollow = async () => {
+  if (!userStore.isLogin) {
+    ElMessage.warning('请先登录')
+    router.push('/login')
+    return
+  }
+
+  try {
+    followLoading.value = true
+    const operation = isFollowing.value ? 2 : 1
+    await followUser({
+      targetUserId: authorInfo.value.id,
+      operation
+    })
+
+    isFollowing.value = !isFollowing.value
+    ElMessage.success(isFollowing.value ? '关注成功' : '取消关注成功')
+  } catch (error) {
+    console.error('关注操作失败:', error)
+  } finally {
+    followLoading.value = false
+  }
+}
+
+// 打开粉丝列表弹窗
+const openFollowersDialog = async () => {
+  followersDialogVisible.value = true
+  followersPageNum.value = 1
+  followersList.value = []
+  followersHasMore.value = true
+  await fetchFollowers(true)
+}
+
+// 打开关注列表弹窗
+const openFollowingDialog = async () => {
+  followingDialogVisible.value = true
+  followingPageNum.value = 1
+  followingList.value = []
+  followingHasMore.value = true
+  await fetchFollowing(true)
+}
+
+// 获取粉丝列表
+const fetchFollowers = async (reset = false) => {
+  const userId = route.params.userId
+  if (!userId) return
+
+  try {
+    if (reset) {
+      followersLoading.value = true
+    } else {
+      followersLoadingMore.value = true
+    }
+
+    const res = await getFollowers({
+      userId,
+      pageNum: followersPageNum.value,
+      pageSize: 10
+    })
+
+    const list = res.data.list || []
+    if (reset) {
+      followersList.value = list
+    } else {
+      followersList.value = [...followersList.value, ...list]
+    }
+
+    followersHasMore.value = res.data.hasNextPage
+  } catch (error) {
+    console.error('获取粉丝列表失败:', error)
+    ElMessage.error('获取粉丝列表失败')
+  } finally {
+    followersLoading.value = false
+    followersLoadingMore.value = false
+  }
+}
+
+// 获取关注列表
+const fetchFollowing = async (reset = false) => {
+  const userId = route.params.userId
+  if (!userId) return
+
+  try {
+    if (reset) {
+      followingLoading.value = true
+    } else {
+      followingLoadingMore.value = true
+    }
+
+    const res = await getFollowing({
+      userId,
+      pageNum: followingPageNum.value,
+      pageSize: 10
+    })
+
+    const list = res.data.list || []
+    if (reset) {
+      followingList.value = list
+    } else {
+      followingList.value = [...followingList.value, ...list]
+    }
+
+    followingHasMore.value = res.data.hasNextPage
+  } catch (error) {
+    console.error('获取关注列表失败:', error)
+    ElMessage.error('获取关注列表失败')
+  } finally {
+    followingLoading.value = false
+    followingLoadingMore.value = false
+  }
+}
+
+// 加载更多粉丝
+const loadMoreFollowers = () => {
+  if (!followersHasMore.value || followersLoadingMore.value || followersLoading.value) return
+  followersPageNum.value++
+  fetchFollowers()
+}
+
+// 加载更多关注
+const loadMoreFollowing = () => {
+  if (!followingHasMore.value || followingLoadingMore.value || followingLoading.value) return
+  followingPageNum.value++
+  fetchFollowing()
 }
 
 watch(() => route.params.userId, () => {
