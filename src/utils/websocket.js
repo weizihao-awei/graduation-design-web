@@ -13,19 +13,9 @@ class WebSocketService {
   getWebSocketUrl() {
     const userStore = useUserStore();
     const token = userStore.token;
+    const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
 
-    // 开发环境使用代理地址，生产环境使用实际地址
-    const isDev = import.meta.env.DEV;
-
-    if (isDev) {
-      // 开发环境：通过 Vite 代理转发到后端
-      return `ws://localhost:5173/ws/message?token=${token}`;
-    } else {
-      // 生产环境：直接连接后端 WebSocket
-      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      const host = window.location.host;
-      return `${protocol}://${host}/ws/message?token=${token}`;
-    }
+    return `${wsBaseUrl}/ws/message?token=${token}`;
   }
 
   /**

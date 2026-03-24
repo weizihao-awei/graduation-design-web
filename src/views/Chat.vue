@@ -185,6 +185,8 @@ const handleBack = () => router.back();
  */
 const handleWebSocketMessage = (message) => {
   console.log("[WebSocket] 收到消息:", message);
+  //弹框提示新消息
+  ElMessage.success(`收到新消息: ${message.content}`);
   // 只处理与当前聊天相关的消息
   if (message.chatId === chatId.value) {
     const existingIds = new Set(messageList.value.map(m => m.id));
@@ -201,6 +203,14 @@ const handleWebSocketMessage = (message) => {
 const startWebSocket = () => {
   // 订阅消息事件
   unsubscribeMessage.value = wsService.on("message", handleWebSocketMessage);
+  // 订阅连接成功事件
+  wsService.on("open", () => {
+    ElMessage.success("WebSocket 连接成功");
+  });
+  // 订阅连接失败事件
+  wsService.on("error", (error) => {
+    ElMessage.error("WebSocket 连接失败");
+  });
   // 建立连接
   wsService.connect();
 };
