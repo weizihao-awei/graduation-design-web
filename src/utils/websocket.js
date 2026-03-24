@@ -15,7 +15,7 @@ class WebSocketService {
     const token = userStore.token;
     const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
 
-    return `${wsBaseUrl}/ws/message?token=${token}`;
+    return `/ws/message?token=${token}`;
   }
 
   /**
