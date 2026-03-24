@@ -70,6 +70,7 @@ import { ElMessage } from "element-plus";
 import { Promotion, ArrowLeft } from "@element-plus/icons-vue";
 import Header from "@/components/Header.vue";
 import Footer from "@/components/Footer.vue";
+import wsService from "@/utils/websocket";
 
 const route = useRoute();
 const router = useRouter();
@@ -83,7 +84,7 @@ const messageList = ref([]);
 const messagesContainer = ref(null);
 const otherUserInfo = ref({});
 const chatId = ref("");
-const pollingTimer = ref(null);
+const unsubscribeMessage = ref(null);
 
 const currentUserId = computed(() => String(userStore.userInfo.id));
 const isMe = (senderId) => String(senderId) === currentUserId.value;
@@ -179,19 +180,39 @@ const handleSend = async () => {
 
 const handleBack = () => router.back();
 
-const startPolling = () => {
-  if (pollingTimer.value) {
-    clearInterval(pollingTimer.value);
+/**
+ * 处理 WebSocket 收到的消息
+ */
+const handleWebSocketMessage = (message) => {
+  console.log("[WebSocket] 收到消息:", message);
+  // 只处理与当前聊天相关的消息
+  if (message.chatId === chatId.value) {
+    const existingIds = new Set(messageList.value.map(m => m.id));
+    if (!existingIds.has(message.id)) {
+      messageList.value.push(message);
+      scrollToBottom();
+    }
   }
-  pollingTimer.value = setInterval(() => {
-    fetchMessages();
-  }, 4000);
 };
 
-const stopPolling = () => {
-  if (pollingTimer.value) {
-    clearInterval(pollingTimer.value);
-    pollingTimer.value = null;
+/**
+ * 启动 WebSocket 连接
+ */
+const startWebSocket = () => {
+  // 订阅消息事件
+  unsubscribeMessage.value = wsService.on("message", handleWebSocketMessage);
+  // 建立连接
+  wsService.connect();
+};
+
+/**
+ * 停止 WebSocket 连接
+ */
+const stopWebSocket = () => {
+  // 取消消息订阅
+  if (unsubscribeMessage.value) {
+    unsubscribeMessage.value();
+    unsubscribeMessage.value = null;
   }
 };
 
@@ -209,7 +230,7 @@ const initChat = async () => {
     chatId.value = chatRes.data;
     otherUserInfo.value = authorRes.data;
     await fetchMessages();
-    startPolling();
+    startWebSocket();
   } catch {
     ElMessage.error("初始化聊天失败");
   } finally {
@@ -218,7 +239,7 @@ const initChat = async () => {
 };
 
 onMounted(initChat);
-onUnmounted(stopPolling);
+onUnmounted(stopWebSocket);
 </script>
 
 <style scoped>
