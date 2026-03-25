@@ -29,22 +29,11 @@ class WebSocketService {
 
     this.isConnecting = true;
     const url = this.getWebSocketUrl();
-    const userStore = useUserStore();
-    const token = userStore.token;
-
-    if (!token) {
-      console.error("[WebSocket] Token 为空，无法建立连接");
-      this.isConnecting = false;
-      return;
-    }
 
     try {
 
 
-      // 检查 token 是否有效
-      if (!token || typeof token !== "string") {
-        throw new Error(`Token 无效: ${typeof token}`);
-      }
+
 
       // 直接使用 URL 参数传递 token，后端从 URL 参数读取
       this.socket = new WebSocket(url);
