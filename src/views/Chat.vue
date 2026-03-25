@@ -185,8 +185,7 @@ const handleBack = () => router.back();
  */
 const handleWebSocketMessage = (message) => {
   console.log("[WebSocket] 收到消息:", message);
-  //弹框提示新消息
-  ElMessage.success(`收到新消息: ${message.content}`);
+
   // 只处理与当前聊天相关的消息
   if (message.chatId === chatId.value) {
     const existingIds = new Set(messageList.value.map(m => m.id));

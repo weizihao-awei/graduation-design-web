@@ -13,7 +13,6 @@ class WebSocketService {
   getWebSocketUrl() {
     const userStore = useUserStore();
     const token = userStore.token;
-    const wsBaseUrl = import.meta.env.VITE_WS_BASE_URL;
 
     return `/ws/message?token=${token}`;
   }
@@ -22,13 +21,6 @@ class WebSocketService {
    * 建立 WebSocket 连接
    */
   connect() {
-    console.log("[WebSocket] connect() 被调用");
-    console.log("[WebSocket] 当前状态:", {
-      socket: this.socket,
-      readyState: this.socket?.readyState,
-      isConnecting: this.isConnecting,
-      OPEN: WebSocket.OPEN,
-    });
 
     if (this.socket?.readyState === WebSocket.OPEN || this.isConnecting) {
       console.log("[WebSocket] 已连接或正在连接中，跳过");
@@ -40,10 +32,6 @@ class WebSocketService {
     const userStore = useUserStore();
     const token = userStore.token;
 
-    console.log("[WebSocket] 正在连接:", url);
-    console.log("[WebSocket] Token 存在:", !!token);
-    console.log("[WebSocket] Token 长度:", token?.length);
-
     if (!token) {
       console.error("[WebSocket] Token 为空，无法建立连接");
       this.isConnecting = false;
@@ -51,8 +39,7 @@ class WebSocketService {
     }
 
     try {
-      console.log("[WebSocket] 创建 WebSocket 实例...");
-      console.log("[WebSocket] Token 存在:", !!token);
+
 
       // 检查 token 是否有效
       if (!token || typeof token !== "string") {
@@ -61,12 +48,7 @@ class WebSocketService {
 
       // 直接使用 URL 参数传递 token，后端从 URL 参数读取
       this.socket = new WebSocket(url);
-      console.log("[WebSocket] WebSocket 实例已创建:", this.socket);
-      console.log(
-        "[WebSocket] readyState:",
-        this.socket.readyState,
-        "(0=CONNECTING, 1=OPEN, 2=CLOSING, 3=CLOSED)",
-      );
+
 
       this.socket.onopen = (event) => {
         console.log("[WebSocket] 连接已建立", event);
