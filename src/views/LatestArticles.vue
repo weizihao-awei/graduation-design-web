@@ -1,44 +1,86 @@
 <template>
-  <div class="latest-articles-page">
+  <div class="timeline-articles-page">
     <Header />
 
     <div class="container">
+      <!-- 页面标题区 -->
       <div class="page-header">
-        <h1 class="page-title">
-          <el-icon>
-            <Clock />
-          </el-icon>
-          最新文章
-        </h1>
-        <p class="page-description">最新发布的文章</p>
+        <div class="header-content">
+          <h1 class="page-title">
+            <el-icon>
+              <Clock />
+            </el-icon>
+            时间轴
+          </h1>
+          <p class="page-description">按时间顺序探索文章，点击日历日期查看特定日期的内容</p>
+        </div>
+        <div class="header-decoration">
+          <div class="decoration-circle"></div>
+          <div class="decoration-line"></div>
+        </div>
       </div>
 
       <div class="content-grid">
-        <div class="main-section">
-          <div class="article-list" ref="articleListRef">
-            <ArticleCard v-for="article in articles" :key="article.id" :article="article" />
+        <!-- 左侧时间轴文章列表 -->
+        <div class="timeline-section">
+          <!-- 日期标题 -->
+          <div class="timeline-date-header" v-if="articles.length > 0">
+            <div class="year-badge">{{ selectedYear }}</div>
+            <div class="date-info">
+              <span class="selected-date">{{ formatSelectedDate }}</span>
+          
+            </div>
           </div>
 
-          <div class="load-more" ref="loadMoreRef">
-            <el-button v-if="hasMore && !loading" type="primary" @click="loadMore">
-              加载更多
-            </el-button>
-            <div v-else-if="loading" class="loading-text">
+          <!-- 时间轴列表 -->
+          <div class="timeline-list" ref="timelineListRef">
+            <TimelineArticleCard v-for="article in articles" :key="article.id" :article="article" />
+
+            <!-- 时间轴终点 -->
+            <div class="timeline-end" v-if="!hasMore && articles.length > 0">
+              <div class="end-dot"></div>
+              <span class="end-text">已经到底啦~</span>
+            </div>
+          </div>
+
+          <!-- 加载更多 -->
+          <div class="load-more" ref="loadMoreRef" v-if="hasMore || loading">
+            <div v-if="loading" class="loading-state">
               <el-icon class="is-loading">
                 <Loading />
               </el-icon>
-              加载中...
+              <span>加载中...</span>
             </div>
-            <div v-else-if="articles.length > 0" class="no-more-text">
-              没有更多了
-            </div>
+            <el-button v-else-if="hasMore" type="primary" class="load-more-btn" @click="loadMore">
+              加载更多
+            </el-button>
           </div>
 
-          <el-empty v-if="!loading && articles.length === 0" description="暂无最新文章" />
+          <!-- 空状态 -->
+          <el-empty v-if="!loading && articles.length === 0" description="该日期暂无文章" class="timeline-empty">
+            <el-button type="primary" @click="goToToday">查看今天</el-button>
+          </el-empty>
         </div>
 
-        <aside class="sidebar">
-          <Sidebar />
+        <!-- 右侧日历 -->
+        <aside class="calendar-sidebar">
+          <TimelineCalendar :month-statistics="monthStatistics" :selected-date="selectedDate"
+            @select-date="handleDateSelect" @month-change="handleMonthChange" />
+
+          <!-- 时间轴导航提示 -->
+          <div class="timeline-tips">
+            <h4 class="tips-title">
+              <el-icon>
+                <InfoFilled />
+              </el-icon>
+              使用提示
+            </h4>
+            <ul class="tips-list">
+              <li>点击日历上有标记的日期查看文章</li>
+              <li>向下滚动加载更多历史文章</li>
+              <li>使用日历切换月份浏览</li>
+            </ul>
+          </div>
         </aside>
       </div>
     </div>
@@ -48,129 +90,194 @@
 </template>
 
 <script setup>
-// 导入 Vue 组合式 API
-import { ref, onMounted, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import Header from '@/components/Header.vue'
 import Footer from '@/components/Footer.vue'
-import ArticleCard from '@/components/ArticleCard.vue'
-import Sidebar from '@/components/Sidebar.vue'
-import { getLatestArticles } from '@/api/article'
+import TimelineArticleCard from '@/components/TimelineArticleCard.vue'
+import TimelineCalendar from '@/components/TimelineCalendar.vue'
+import { getMonthStatistics, getArticlesBefore } from '@/api/article'
 import { ElMessage } from 'element-plus'
-import { Clock, Loading } from '@element-plus/icons-vue'
+import { Clock, Loading, InfoFilled } from '@element-plus/icons-vue'
 
-// 初始化路由
-const router = useRouter()
-
-// 响应式数据定义
+// ============ 响应式数据 ============
 const articles = ref([])
 const loading = ref(false)
 const hasMore = ref(true)
 const pageNum = ref(1)
 const pageSize = ref(10)
 
-// DOM 元素引用
-const articleListRef = ref(null)   // 文章列表容器引用
-const loadMoreRef = ref(null)      // 加载更多按钮容器引用
-let observer = null                // IntersectionObserver 实例
 
-// 获取文章列表数据
-// reset: 是否重置列表（从头开始加载）
+// 当前选中的日期
+const selectedDate = ref(new Date())
+
+// 月份统计数据
+const monthStatistics = ref(null)
+
+// DOM 引用
+const timelineListRef = ref(null)
+const loadMoreRef = ref(null)
+let observer = null
+
+// ============ 计算属性 ============
+const selectedYear = computed(() => {
+  return selectedDate.value.getFullYear()
+})
+
+const formatSelectedDate = computed(() => {
+  const date = selectedDate.value
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  return `${month}月${day}日`
+})
+
+// ============ 方法 ============
+
+/**
+ * 格式化日期为 yyyy-MM-dd
+ */
+const formatDate = (date) => {
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+/**
+ * 获取月份统计数据
+ */
+const fetchMonthStatistics = async (year, month) => {
+  try {
+    const res = await getMonthStatistics({ year, month })
+    if (res.code === 200) {
+      monthStatistics.value = res.data
+    }
+  } catch (error) {
+    console.error('获取月份统计失败:', error)
+  }
+}
+
+/**
+ * 获取文章列表
+ */
 const fetchArticles = async (reset = false) => {
-  // 防止重复加载
   if (loading.value) return
 
   try {
-    // 设置加载状态
     loading.value = true
 
-    // 如果需要重置，则重置页码和文章列表
     if (reset) {
       pageNum.value = 1
       articles.value = []
       hasMore.value = true
     }
 
-    // 调用 API 获取文章数据
-    const res = await getLatestArticles({
+    const res = await getArticlesBefore({
+      date: formatDate(selectedDate.value),
       pageNum: pageNum.value,
       pageSize: pageSize.value
     })
 
-    // 根据是否重置来更新文章列表
-    if (reset) {
-      // 重置时直接替换列表
-      articles.value = res.data.list || []
-    } else {
-      // 加载更多时将新数据追加到现有列表
-      articles.value = [...articles.value, ...(res.data.list || [])]
+    if (res.code === 200 || res.code === 202) {
+      const newArticles = res.data.list || []
+
+      if (reset) {
+        articles.value = newArticles
+      } else {
+        // 去重后追加
+        const existingIds = new Set(articles.value.map(a => a.id))
+        const uniqueNewArticles = newArticles.filter(a => !existingIds.has(a.id))
+        articles.value = [...articles.value, ...uniqueNewArticles]
+      }
+
+
+      hasMore.value = res.data.hasNextPage || false
     }
-    // 更新是否有更多数据的标识
-    hasMore.value = res.data.hasNextPage
   } catch (error) {
-    console.error('获取最新文章失败:', error)
-    ElMessage.error('获取最新文章失败')
+    console.error('获取文章失败:', error)
+    ElMessage.error('获取文章失败')
   } finally {
-    // 无论成功失败都关闭加载状态
     loading.value = false
   }
 }
 
-// 加载更多文章
+/**
+ * 加载更多
+ */
 const loadMore = () => {
-  // 如果没有更多数据或正在加载，则不执行
   if (!hasMore.value || loading.value) return
-  // 页码加1
   pageNum.value++
-  // 获取下一页数据
   fetchArticles()
 }
 
-// 初始化 IntersectionObserver（无限滚动监听器）
+/**
+ * 回到今天
+ */
+const goToToday = () => {
+  selectedDate.value = new Date()
+  const year = selectedDate.value.getFullYear()
+  const month = selectedDate.value.getMonth() + 1
+  fetchMonthStatistics(year, month)
+  fetchArticles(true)
+}
+
+/**
+ * 处理日期选择
+ */
+const handleDateSelect = (date) => {
+  selectedDate.value = date
+  fetchArticles(true)
+}
+
+/**
+ * 处理月份切换
+ */
+const handleMonthChange = ({ year, month }) => {
+  fetchMonthStatistics(year, month)
+}
+
+/**
+ * 初始化 IntersectionObserver
+ */
 const initIntersectionObserver = () => {
-  // 如果已存在观察器，先断开连接
   if (observer) {
     observer.disconnect()
   }
 
-  // 创建新的 IntersectionObserver 实例
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        // 当元素进入视口且还有更多数据且未在加载时，触发加载更多
         if (entry.isIntersecting && hasMore.value && !loading.value) {
           loadMore()
         }
       })
     },
     {
-      rootMargin: '100px',    // 提前100px触发加载
-      threshold: 0.1          // 元素显示10%时触发
+      rootMargin: '100px',
+      threshold: 0.1
     }
   )
 
-  // 开始观察加载更多按钮容器
   if (loadMoreRef.value) {
     observer.observe(loadMoreRef.value)
   }
 }
 
-// 初始化页面数据
+/**
+ * 初始化页面数据
+ */
 const initData = async () => {
-  fetchArticles(true)
+  const now = new Date()
+  await fetchMonthStatistics(now.getFullYear(), now.getMonth() + 1)
+  await fetchArticles(true)
 }
 
-// 组件挂载时执行
+// ============ 生命周期 ============
 onMounted(() => {
-  // 初始化数据
   initData()
-  // 初始化无限滚动监听器
   initIntersectionObserver()
 })
 
-// 组件卸载时执行
 onUnmounted(() => {
-  // 断开观察器连接，避免内存泄漏
   if (observer) {
     observer.disconnect()
   }
@@ -178,323 +285,322 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.latest-articles-page {
+.timeline-articles-page {
   min-height: 100vh;
-  background: var(--bg-page);
+  background: linear-gradient(135deg, #f8f9fc 0%, #f0f4f8 100%);
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: var(--spacing-lg);
+  padding: 40px 20px;
 }
 
+/* ========== 页面头部 ========== */
 .page-header {
-  text-align: center;
-  margin-bottom: var(--spacing-xl);
-  padding: 60px 40px;
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
-  border-radius: var(--border-radius-xl);
-  color: #2c3e50;
   position: relative;
+  margin-bottom: 40px;
+  padding: 50px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
 }
 
-.page-header::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -30%;
-  width: 80%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.08) 0%, transparent 70%);
-  animation: float 8s ease-in-out infinite;
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-
-  50% {
-    transform: translateY(-20px) rotate(5deg);
-  }
+.header-content {
+  position: relative;
+  z-index: 1;
 }
 
 .page-title {
-  margin: 0 0 var(--spacing-md) 0;
-  font-size: 2rem;
-  font-weight: 600;
+  margin: 0 0 12px 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #fff;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  position: relative;
-  color: #34495e;
-  letter-spacing: 0.5px;
+  gap: 16px;
+  letter-spacing: 2px;
 }
 
 .page-title .el-icon {
-  font-size: 2.2rem;
-  color: #667eea;
-  filter: drop-shadow(0 2px 4px rgba(102, 126, 234, 0.3));
+  font-size: 2.5rem;
 }
 
 .page-description {
   margin: 0;
   font-size: 1rem;
-  color: #7f8c8d;
-  position: relative;
+  color: rgba(255, 255, 255, 0.85);
   font-weight: 400;
-  letter-spacing: 0.3px;
 }
 
-.content-grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--spacing-xl);
-}
-
-.main-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-}
-
-.article-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--spacing-lg);
-  margin-bottom: var(--spacing-lg);
-}
-
-@media (max-width: 768px) {
-  .article-list {
-    grid-template-columns: 1fr;
-  }
-}
-
-.load-more {
-  text-align: center;
-  margin-top: var(--spacing-xl);
-  padding: var(--spacing-lg);
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.load-more .el-button {
-  padding: 12px 30px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--shadow-light);
-  transition: var(--transition-base);
-}
-
-.load-more .el-button:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-hover);
-}
-
-.loading-text {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-
-.loading-text .el-icon {
-  font-size: 18px;
-}
-
-.no-more-text {
-  color: var(--text-secondary);
-  font-size: 14px;
-  padding: 10px 20px;
-  background: var(--bg-page);
-  border-radius: var(--border-radius-base);
-}
-
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-lg);
-  position: sticky;
-  top: 80px;
-  height: fit-content;
-}
-
-.widget {
-  background: var(--bg-white);
-  border-radius: var(--border-radius-xl);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-card);
-  transition: var(--transition-base);
-  position: relative;
-  overflow: hidden;
-}
-
-.widget::after {
-  content: '';
+.header-decoration {
   position: absolute;
   top: 0;
   right: 0;
-  width: 60px;
-  height: 60px;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  opacity: 0.1;
-  border-radius: 0 0 0 60px;
-}
-
-.widget:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-hover);
-}
-
-.widget-title {
-  margin: 0 0 var(--spacing-lg) 0;
-  font-size: 1.2rem;
-  color: var(--text-primary);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--border-lighter);
-  font-weight: 600;
-  position: relative;
-}
-
-.widget-title::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  width: 40px;
-  height: 2px;
-  background: #667eea;
-}
-
-.tags-cloud {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-sm);
-}
-
-.tag-item {
-  cursor: pointer;
-  transition: var(--transition-base);
-  position: relative;
+  width: 300px;
+  height: 100%;
   overflow: hidden;
 }
 
-.tag-item::before {
-  content: '';
+.decoration-circle {
+  position: absolute;
+  top: -100px;
+  right: -100px;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.decoration-line {
   position: absolute;
   top: 50%;
-  left: 50%;
-  width: 0;
-  height: 0;
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  right: 50px;
+  width: 150px;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-50%);
 }
 
-.tag-item:hover {
-  transform: scale(1.1);
-  box-shadow: var(--shadow-light);
-  z-index: 1;
+/* ========== 内容网格 ========== */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 30px;
+  align-items: start;
 }
 
-.tag-item:hover::before {
-  width: 100px;
-  height: 100px;
+/* ========== 时间轴区域 ========== */
+.timeline-section {
+  background: #fff;
+  border-radius: 24px;
+  padding: 30px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  min-height: 600px;
 }
 
-.category-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+/* 日期头部 */
+.timeline-date-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
 }
 
-.category-item {
-  padding: var(--spacing-md) 0;
-  border-bottom: 1px solid var(--border-lighter);
-  transition: var(--transition-fast);
+.year-badge {
+  font-size: 14px;
+  font-weight: 600;
+  color: #667eea;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 6px 14px;
+  border-radius: 20px;
+  letter-spacing: 1px;
+}
+
+.date-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selected-date {
+  font-size: 20px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.article-count {
+  font-size: 13px;
+  color: #999;
+}
+
+/* 时间轴列表 */
+.timeline-list {
   position: relative;
 }
 
-.category-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  width: 0;
-  height: 0;
-  background: #667eea;
-  border-radius: 50%;
-  transform: translateY(-50%);
-  transition: width 0.3s, height 0.3s;
-}
-
-.category-item:hover {
-  padding-left: var(--spacing-md);
-  border-bottom-color: #764ba2;
-}
-
-.category-item:hover::before {
-  width: 4px;
-  height: 4px;
-}
-
-.category-item:last-child {
-  border-bottom: none;
-}
-
-.category-item a {
-  color: var(--text-regular);
-  text-decoration: none;
+/* 时间轴终点 */
+.timeline-end {
   display: flex;
-  justify-content: space-between;
-  transition: var(--transition-fast);
-  font-weight: 500;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0 20px;
+  margin-left: 12px;
 }
 
-.category-item a:hover {
+.end-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  opacity: 0.5;
+}
+
+.end-text {
+  font-size: 13px;
+  color: #999;
+}
+
+/* 加载更多 */
+.load-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 30px 0 10px;
+  min-height: 60px;
+}
+
+.loading-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #667eea;
+  font-size: 14px;
+}
+
+.loading-state .el-icon {
+  font-size: 18px;
+}
+
+.load-more-btn {
+  padding: 12px 40px;
+  font-size: 14px;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.load-more-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* 空状态 */
+.timeline-empty {
+  padding: 80px 0;
+}
+
+/* ========== 侧边栏 ========== */
+.calendar-sidebar {  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 20px;
+}
+
+/* 提示卡片 */
+.timeline-tips {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.tips-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 16px 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.tips-title .el-icon {
   color: #667eea;
 }
 
-.count {
-  color: var(--text-secondary);
-  font-size: 14px;
-  background: var(--bg-page);
-  padding: 2px 8px;
-  border-radius: var(--border-radius-base);
-  font-weight: 600;
+.tips-list {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  color: #666;
+  line-height: 2;
 }
 
-@media (max-width: 768px) {
+.tips-list li {
+  position: relative;
+}
+
+.tips-list li::marker {
+  color: #667eea;
+}
+
+/* ========== 响应式设计 ========== */
+@media (max-width: 1024px) {
   .content-grid {
     grid-template-columns: 1fr;
   }
 
-  .sidebar {
+  .calendar-sidebar {
     position: static;
-    order: 2;
+    order: -1;
+  }
+
+  .timeline-calendar {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+
+  .timeline-tips {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 20px 16px;
+  }
+
+  .page-header {
+    padding: 30px 24px;
+    margin-bottom: 24px;
   }
 
   .page-title {
-    font-size: 1.5rem;
+    font-size: 1.8rem;
+  }
+
+  .page-title .el-icon {
+    font-size: 1.8rem;
+  }
+
+  .timeline-section {
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .timeline-date-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .header-decoration {
+    display: none;
   }
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding: var(--spacing-md);
+  .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-description {
+    font-size: 0.875rem;
+  }
+
+  .timeline-section {
+    padding: 16px;
+  }
+
+  .selected-date {
+    font-size: 18px;
   }
 }
 </style>
