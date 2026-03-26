@@ -28,7 +28,6 @@
             <div class="year-badge">{{ selectedYear }}</div>
             <div class="date-info">
               <span class="selected-date">{{ formatSelectedDate }}</span>
-          
             </div>
           </div>
 
@@ -287,7 +286,7 @@ onUnmounted(() => {
 <style scoped>
 .timeline-articles-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8f9fc 0%, #f0f4f8 100%);
+  background: linear-gradient(135deg, #f8fafb 0%, #f0f4f3 100%);
 }
 
 .container {
@@ -301,10 +300,10 @@ onUnmounted(() => {
   position: relative;
   margin-bottom: 40px;
   padding: 50px 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3a7bd5 0%, #00d2a0 100%);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10px 40px rgba(58, 123, 213, 0.25);
 }
 
 .header-content {
@@ -330,7 +329,7 @@ onUnmounted(() => {
 .page-description {
   margin: 0;
   font-size: 1rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 400;
 }
 
@@ -376,7 +375,7 @@ onUnmounted(() => {
   background: #fff;
   border-radius: 24px;
   padding: 30px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
   min-height: 600px;
 }
 
@@ -387,14 +386,14 @@ onUnmounted(() => {
   gap: 16px;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 2px solid rgba(102, 126, 234, 0.1);
+  border-bottom: 2px solid rgba(58, 123, 213, 0.1);
 }
 
 .year-badge {
   font-size: 14px;
   font-weight: 600;
-  color: #667eea;
-  background: rgba(102, 126, 234, 0.1);
+  color: #3a7bd5;
+  background: rgba(58, 123, 213, 0.1);
   padding: 6px 14px;
   border-radius: 20px;
   letter-spacing: 1px;
@@ -436,7 +435,7 @@ onUnmounted(() => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3a7bd5 0%, #00d2a0 100%);
   opacity: 0.5;
 }
 
@@ -458,7 +457,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #667eea;
+  color: #3a7bd5;
   font-size: 14px;
 }
 
@@ -470,14 +469,14 @@ onUnmounted(() => {
   padding: 12px 40px;
   font-size: 14px;
   border-radius: 25px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #3a7bd5 0%, #00d2a0 100%);
   border: none;
   transition: all 0.3s ease;
 }
 
 .load-more-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 20px rgba(58, 123, 213, 0.35);
 }
 
 /* 空状态 */
@@ -486,7 +485,8 @@ onUnmounted(() => {
 }
 
 /* ========== 侧边栏 ========== */
-.calendar-sidebar {  display: flex;
+.calendar-sidebar {
+  display: flex;
   flex-direction: column;
   gap: 20px;
   position: sticky;
@@ -498,7 +498,7 @@ onUnmounted(() => {
   background: #fff;
   border-radius: 20px;
   padding: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
 }
 
 .tips-title {
@@ -512,7 +512,7 @@ onUnmounted(() => {
 }
 
 .tips-title .el-icon {
-  color: #667eea;
+  color: #3a7bd5;
 }
 
 .tips-list {
@@ -528,7 +528,7 @@ onUnmounted(() => {
 }
 
 .tips-list li::marker {
-  color: #667eea;
+  color: #3a7bd5;
 }
 
 /* ========== 响应式设计 ========== */
