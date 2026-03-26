@@ -286,7 +286,7 @@ onUnmounted(() => {
 <style scoped>
 .timeline-articles-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #f8fafb 0%, #f0f4f3 100%);
+  background: linear-gradient(135deg, #f8fafb 0%, #f0f7f4 100%);
 }
 
 .container {
@@ -300,10 +300,10 @@ onUnmounted(() => {
   position: relative;
   margin-bottom: 40px;
   padding: 50px 40px;
-  background: linear-gradient(135deg, #3a7bd5 0%, #00d2a0 100%);
+  background: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
   border-radius: 24px;
   overflow: hidden;
-  box-shadow: 0 10px 40px rgba(58, 123, 213, 0.25);
+  box-shadow: 0 10px 40px rgba(0, 184, 148, 0.25);
 }
 
 .header-content {
@@ -386,14 +386,14 @@ onUnmounted(() => {
   gap: 16px;
   margin-bottom: 30px;
   padding-bottom: 20px;
-  border-bottom: 2px solid rgba(58, 123, 213, 0.1);
+  border-bottom: 2px solid rgba(0, 184, 148, 0.1);
 }
 
 .year-badge {
   font-size: 14px;
   font-weight: 600;
-  color: #3a7bd5;
-  background: rgba(58, 123, 213, 0.1);
+  color: #00b894;
+  background: rgba(0, 184, 148, 0.1);
   padding: 6px 14px;
   border-radius: 20px;
   letter-spacing: 1px;
@@ -435,7 +435,7 @@ onUnmounted(() => {
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #3a7bd5 0%, #00d2a0 100%);
+  background: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
   opacity: 0.5;
 }
 
@@ -457,7 +457,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #3a7bd5;
+  color: #00b894;
   font-size: 14px;
 }
 
@@ -469,14 +469,14 @@ onUnmounted(() => {
   padding: 12px 40px;
   font-size: 14px;
   border-radius: 25px;
-  background: linear-gradient(135deg, #3a7bd5 0%, #00d2a0 100%);
+  background: linear-gradient(135deg, #00b894 0%, #00d2a0 100%);
   border: none;
   transition: all 0.3s ease;
 }
 
 .load-more-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(58, 123, 213, 0.35);
+  box-shadow: 0 8px 20px rgba(0, 184, 148, 0.35);
 }
 
 /* 空状态 */
@@ -512,7 +512,7 @@ onUnmounted(() => {
 }
 
 .tips-title .el-icon {
-  color: #3a7bd5;
+  color: #00b894;
 }
 
 .tips-list {
@@ -528,7 +528,7 @@ onUnmounted(() => {
 }
 
 .tips-list li::marker {
-  color: #3a7bd5;
+  color: #00b894;
 }
 
 /* ========== 响应式设计 ========== */
