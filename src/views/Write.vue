@@ -13,8 +13,6 @@
               <!-- 根据是否编辑模式显示不同标题 -->
               <span>{{ isEdit ? '编辑文章' : '写文章' }}</span>
               <div class="header-actions">
-                <!-- 保存草稿按钮 -->
-                <el-button @click="handleSaveDraft" :loading="saving">保存草稿</el-button>
                 <!-- 发布文章按钮 -->
                 <el-button type="primary" @click="handlePublishClick" :loading="publishing">发布</el-button>
               </div>
@@ -87,8 +85,6 @@ const isEdit = computed(() => !!route.params.id)
 // 计算属性：获取当前编辑的文章ID
 const articleId = computed(() => route.params.id)
 
-// 状态变量：保存草稿时的加载状态
-const saving = ref(false)
 // 状态变量：发布文章时的加载状态
 const publishing = ref(false)
 // 状态变量：当前激活的标签页（markdown或preview）
@@ -136,49 +132,6 @@ const htmlContent = computed(() => {
 watch(() => articleForm.content, () => {
   articleForm.htmlContent = htmlContent.value
 }, { immediate: true })
-
-// 处理保存草稿
-const handleSaveDraft = async () => {
-  // 检查内容是否为空
-  if (!articleForm.content.trim()) {
-    ElMessage.warning('请输入文章内容')
-    return
-  }
-
-  try {
-    // 设置保存状态为加载中
-    saving.value = true
-
-    // 构造保存草稿的数据对象
-    const data = {
-      title: '未命名草稿',  // 草稿默认标题
-      summary: articleForm.content.substring(0, 100) + '...',  // 取前100个字符作为摘要
-      content: articleForm.content,      // Markdown内容
-      htmlContent: articleForm.htmlContent,  // HTML内容
-      status: 0  // 0表示草稿状态
-    }
-
-    // 判断是编辑还是新建
-    if (isEdit.value) {
-      // 编辑模式：调用更新文章API
-      await updateArticle({ ...data, id: articleId.value })
-      ElMessage.success('草稿保存成功')
-    } else {
-      // 新建模式：调用创建文章API
-      const res = await createArticle(data)
-      ElMessage.success('草稿保存成功')
-      // 跳转到编辑页面（带上新创建的文章ID）
-      router.replace(`/write/${res.data}`)
-    }
-  } catch (error) {
-    // 保存失败，输出错误并提示用户
-    console.error('保存草稿失败:', error)
-    ElMessage.error('保存草稿失败')
-  } finally {
-    // 无论成功失败，都关闭加载状态
-    saving.value = false
-  }
-}
 
 // 处理点击发布按钮
 const handlePublishClick = async () => {
